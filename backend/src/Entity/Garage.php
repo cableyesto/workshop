@@ -39,9 +39,16 @@ class Garage
     #[ORM\ManyToMany(targetEntity: Owner::class, mappedBy: 'garages')]
     private Collection $owners;
 
+    /**
+     * @var Collection<int, TimeSlot>
+     */
+    #[ORM\OneToMany(targetEntity: TimeSlot::class, mappedBy: 'garage')]
+    private Collection $timeSlots;
+
     public function __construct()
     {
         $this->owners = new ArrayCollection();
+        $this->timeSlots = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -143,6 +150,36 @@ class Garage
     {
         if ($this->owners->removeElement($owner)) {
             $owner->removeGarage($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TimeSlot>
+     */
+    public function getTimeSlots(): Collection
+    {
+        return $this->timeSlots;
+    }
+
+    public function addTimeSlot(TimeSlot $timeSlot): static
+    {
+        if (!$this->timeSlots->contains($timeSlot)) {
+            $this->timeSlots->add($timeSlot);
+            $timeSlot->setGarage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTimeSlot(TimeSlot $timeSlot): static
+    {
+        if ($this->timeSlots->removeElement($timeSlot)) {
+            // set the owning side to null (unless already changed)
+            if ($timeSlot->getGarage() === $this) {
+                $timeSlot->setGarage(null);
+            }
         }
 
         return $this;
