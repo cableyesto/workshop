@@ -16,7 +16,7 @@ class TimeSlot
     private ?int $id = null;
 
     #[ORM\Column(enumType: DayOfWeek::class)]
-    private ?DayOfWeek $day_of_week = null;
+    private ?DayOfWeek $dayOfWeek = null;
 
     #[ORM\Column(type: Types::TIME_IMMUTABLE)]
     private ?\DateTimeImmutable $startTime = null;
@@ -35,12 +35,12 @@ class TimeSlot
 
     public function getDayOfWeek(): ?DayOfWeek
     {
-        return $this->day_of_week;
+        return $this->dayOfWeek;
     }
 
-    public function setDayOfWeek(DayOfWeek $day_of_week): static
+    public function setDayOfWeek(DayOfWeek $dayOfWeek): static
     {
-        $this->day_of_week = $day_of_week;
+        $this->dayOfWeek = $dayOfWeek;
 
         return $this;
     }

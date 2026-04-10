@@ -8,8 +8,11 @@ security:
         # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
-                class: App\Entity\Owner
+                class: App\Entity\Receptionist
                 property: email
+        # used to reload user from session & other features (e.g. switch_user)
+        # used to reload user from session & other features (e.g. switch_user)
+
 
     firewalls:
         dev:
@@ -30,6 +33,10 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+#    access_control:
+#    - { path: ^/owner, roles: ROLE_OWNER }
+#    - { path: ^/receptionist, roles: ROLE_RECEPTIONIST }
+#    - { path: ^/mechanic, roles: ROLE_MECHANIC }
 
 when@test:
     security:

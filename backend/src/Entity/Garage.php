@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GarageRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_SIRET_NUMBER', fields: ['siretNumber'])]
 class Garage
 {
     #[ORM\Id]
@@ -15,7 +16,7 @@ class Garage
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 14, unique: true)]
+    #[ORM\Column(length: 14)]
     private ?string $siretNumber = null;
 
     #[ORM\Column(length: 50)]

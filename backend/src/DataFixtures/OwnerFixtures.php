@@ -29,8 +29,7 @@ class OwnerFixtures extends Fixture implements DependentFixtureInterface
             $owner->setEmail($faker->unique()->safeEmail())
                 ->setFirstName($faker->firstName())
                 ->setLastName($faker->lastName())
-                ->setPassword($hashedPassword)
-                ->setRoles(['ROLE_USER']);
+                ->setPassword($hashedPassword);
 
             // Associate each owner with 1-3 random garages
             $garageCount = $faker->numberBetween(1, 3);
