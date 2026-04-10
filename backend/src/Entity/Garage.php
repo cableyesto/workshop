@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\GarageRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GarageRepository::class)]
@@ -14,7 +16,7 @@ class Garage
     private ?int $id = null;
 
     #[ORM\Column(length: 14, unique: true)]
-    private ?string $SIRET_number = null;
+    private ?string $siretNumber = null;
 
     #[ORM\Column(length: 50)]
     private ?string $name = null;
@@ -26,24 +28,35 @@ class Garage
     private ?string $city = null;
 
     #[ORM\Column(length: 5)]
-    private ?string $zip_code = null;
+    private ?string $zipCode = null;
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $phone = null;
+
+    /**
+     * @var Collection<int, Owner>
+     */
+    #[ORM\ManyToMany(targetEntity: Owner::class, mappedBy: 'garages')]
+    private Collection $owners;
+
+    public function __construct()
+    {
+        $this->owners = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getSIRETNumber(): ?string
+    public function getSiretNumber(): ?string
     {
-        return $this->SIRET_number;
+        return $this->siretNumber;
     }
 
-    public function setSIRETNumber(string $SIRET_number): static
+    public function setSiretNumber(string $siretNumber): static
     {
-        $this->SIRET_number = $SIRET_number;
+        $this->siretNumber = $siretNumber;
 
         return $this;
     }
@@ -86,12 +99,12 @@ class Garage
 
     public function getZipCode(): ?string
     {
-        return $this->zip_code;
+        return $this->zipCode;
     }
 
-    public function setZipCode(string $zip_code): static
+    public function setZipCode(string $zipCode): static
     {
-        $this->zip_code = $zip_code;
+        $this->zipCode = $zipCode;
 
         return $this;
     }
@@ -104,6 +117,33 @@ class Garage
     public function setPhone(?string $phone): static
     {
         $this->phone = $phone;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Owner>
+     */
+    public function getOwners(): Collection
+    {
+        return $this->owners;
+    }
+
+    public function addOwner(Owner $owner): static
+    {
+        if (!$this->owners->contains($owner)) {
+            $this->owners->add($owner);
+            $owner->addGarage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOwner(Owner $owner): static
+    {
+        if ($this->owners->removeElement($owner)) {
+            $owner->removeGarage($this);
+        }
 
         return $this;
     }

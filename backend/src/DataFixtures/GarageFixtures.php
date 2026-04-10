@@ -9,6 +9,8 @@ use Faker\Factory;
 
 class GarageFixtures extends Fixture
 {
+    public const GARAGE_REFERENCE = 'garage_%d';
+
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create('fr_FR');
@@ -16,7 +18,7 @@ class GarageFixtures extends Fixture
         for ($i = 1; $i <= 5; ++$i) {
             $garage = new Garage();
 
-            $garage->setSIRETNumber($faker->unique()->numerify('##############'))
+            $garage->setSiretNumber($faker->unique()->numerify('##############'))
                 ->setName($faker->company())
                 ->setStreet($faker->streetAddress())
                 ->setCity($faker->city())
@@ -24,6 +26,7 @@ class GarageFixtures extends Fixture
                 ->setPhone($faker->phoneNumber());
 
             $manager->persist($garage);
+            $this->addReference(sprintf(self::GARAGE_REFERENCE, $i), $garage);
         }
 
         $manager->flush();
