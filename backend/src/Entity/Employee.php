@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     "mechanic" => Mechanic::class,
     "receptionist" => Receptionist::class
 ])]
-class Employee
+abstract class Employee
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
