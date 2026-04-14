@@ -36,16 +36,23 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
             $car = new Car();
             $carInfo = $faker->randomElement($carData);
             $colorName = $faker->randomElement($this->colorNames);
+            $clientIndex = $faker->numberBetween(1, 10);
 
             $color = $this->getReference(
                 sprintf(ColorFixtures::COLOR_REFERENCE, $colorName),
                 \App\Entity\Color::class
             );
 
+            $client = $this->getReference(
+                sprintf(ClientFixtures::CLIENT_REFERENCE, $clientIndex),
+                \App\Entity\Client::class
+            );
+
             $car->setManufacturer($carInfo[0])
                 ->setModel($faker->randomElement($carInfo[1]))
                 ->setLicensePlate($this->generateFrenchLicensePlate($faker))
                 ->setColor($color)
+                ->setClient($client)
                 ->setRegistrationYear($faker->numberBetween(2015, 2024))
                 ->setRegistrationMonth($faker->numberBetween(1, 12))
                 ->setMileage($faker->numberBetween(5000, 150000))
@@ -59,16 +66,23 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
             $car = new Car();
             $carInfo = $faker->randomElement($carData);
             $colorName = $faker->randomElement($this->colorNames);
+            $clientIndex = $faker->numberBetween(1, 10);
 
             $color = $this->getReference(
                 sprintf(ColorFixtures::COLOR_REFERENCE, $colorName),
                 \App\Entity\Color::class
             );
 
+            $client = $this->getReference(
+                sprintf(ClientFixtures::CLIENT_REFERENCE, $clientIndex),
+                \App\Entity\Client::class
+            );
+
             $car->setManufacturer($carInfo[0])
                 ->setModel($faker->randomElement($carInfo[1]))
                 ->setLicensePlate($this->generateFrenchLicensePlate($faker))
                 ->setColor($color)
+                ->setClient($client)
                 ->setIsStored($faker->boolean(20)); // 20% chance of being stored
 
             // Optional fields remain null
@@ -91,6 +105,6 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return [ColorFixtures::class];
+        return [ColorFixtures::class, ClientFixtures::class];
     }
 }

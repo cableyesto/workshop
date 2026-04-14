@@ -8,12 +8,15 @@ use App\Repository\ReceptionistRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ReceptionistRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_RECEPTIONIST_EMAIL', fields: ['email'])]
 class Receptionist extends Employee implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank]
+    #[Assert\Email(mode: 'strict')]
     private ?string $email = null;
 
     /**

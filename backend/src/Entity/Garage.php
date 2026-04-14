@@ -8,6 +8,7 @@ use App\Repository\GarageRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: GarageRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_SIRET_NUMBER', fields: ['siretNumber'])]
@@ -34,6 +35,10 @@ class Garage
     private ?string $zipCode = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Assert\Regex(
+        pattern: '/^[0-9\s\-\+\(\)\.]+$/',
+        message: 'Invalid phone number format.'
+    )]
     private ?string $phone = null;
 
     /**
