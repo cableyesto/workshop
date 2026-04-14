@@ -3,8 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\EmployeeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EmployeeRepository::class)]
 #[ORM\InheritanceType("JOINED")]
@@ -31,6 +34,18 @@ class Employee
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $startDate = null;
+
+    /**
+     * @var Collection<int, Garage>
+     */
+    #[ORM\ManyToMany(targetEntity: Garage::class, mappedBy: 'employees')]
+    #[Assert\Count(min: 1, minMessage: 'An employee must work in at least one garage.')]
+    private Collection $garages;
+
+    public function __construct()
+    {
+        $this->garages = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -81,6 +96,33 @@ class Employee
     public function setStartDate(?\DateTimeImmutable $startDate): static
     {
         $this->startDate = $startDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Garage>
+     */
+    public function getGarages(): Collection
+    {
+        return $this->garages;
+    }
+
+    public function addGarage(Garage $garage): static
+    {
+        if (!$this->garages->contains($garage)) {
+            $this->garages->add($garage);
+            $garage->addEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGarage(Garage $garage): static
+    {
+        if ($this->garages->removeElement($garage)) {
+            $garage->removeEmployee($this);
+        }
 
         return $this;
     }

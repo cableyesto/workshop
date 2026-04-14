@@ -46,10 +46,17 @@ class Garage
     #[ORM\OneToMany(targetEntity: TimeSlot::class, mappedBy: 'garage')]
     private Collection $timeSlots;
 
+    /**
+     * @var Collection<int, Employee>
+     */
+    #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'garages')]
+    private Collection $employees;
+
     public function __construct()
     {
         $this->owners = new ArrayCollection();
         $this->timeSlots = new ArrayCollection();
+        $this->employees = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -182,6 +189,30 @@ class Garage
                 $timeSlot->setGarage(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Employee>
+     */
+    public function getEmployees(): Collection
+    {
+        return $this->employees;
+    }
+
+    public function addEmployee(Employee $employee): static
+    {
+        if (!$this->employees->contains($employee)) {
+            $this->employees->add($employee);
+        }
+
+        return $this;
+    }
+
+    public function removeEmployee(Employee $employee): static
+    {
+        $this->employees->removeElement($employee);
 
         return $this;
     }
