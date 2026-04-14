@@ -38,6 +38,10 @@ class Intervention
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $finalNote = null;
 
+    #[ORM\ManyToOne(inversedBy: 'interventions')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Car $car = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -123,6 +127,18 @@ class Intervention
     public function setFinalNote(?string $finalNote): static
     {
         $this->finalNote = $finalNote;
+
+        return $this;
+    }
+
+    public function getCar(): ?Car
+    {
+        return $this->car;
+    }
+
+    public function setCar(?Car $car): static
+    {
+        $this->car = $car;
 
         return $this;
     }

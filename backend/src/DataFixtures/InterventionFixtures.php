@@ -9,10 +9,11 @@ use App\Enum\InterventionStatus;
 use App\Enum\InterventionType;
 use App\Enum\DocumentType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 
-class InterventionFixtures extends Fixture
+class InterventionFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
@@ -20,6 +21,13 @@ class InterventionFixtures extends Fixture
 
         for ($i = 1; $i <= 10; ++$i) {
             $intervention = new Intervention();
+
+            // Get random car (1 to 10)
+            $carIndex = $faker->numberBetween(1, 10);
+            $car = $this->getReference(
+                sprintf(CarFixtures::CAR_REFERENCE, $carIndex),
+                \App\Entity\Car::class
+            );
 
             // Required fields
             $date = \DateTimeImmutable::createFromMutable(
@@ -33,7 +41,8 @@ class InterventionFixtures extends Fixture
                 ->setStartTime($startTime)
                 ->setStatus($faker->randomElement(InterventionStatus::cases()))
                 ->setType($faker->randomElement(InterventionType::cases()))
-                ->setDocumentType($faker->randomElement(DocumentType::cases()));
+                ->setDocumentType($faker->randomElement(DocumentType::cases()))
+                ->setCar($car);
 
             // Optional fields - 50% chance each
             if ($faker->boolean(50)) {
@@ -48,5 +57,10 @@ class InterventionFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    public function getDependencies(): array
+    {
+        return [CarFixtures::class];
     }
 }

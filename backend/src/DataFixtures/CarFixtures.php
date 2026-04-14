@@ -12,6 +12,8 @@ use Faker\Factory;
 
 class CarFixtures extends Fixture implements DependentFixtureInterface
 {
+    public const CAR_REFERENCE = 'car_%d';
+
     private array $colorNames = [
         'Blanc', 'Noir', 'Gris', 'Argent', 'Bleu',
         'Rouge', 'Beige', 'Marron', 'Vert', 'Jaune',
@@ -59,10 +61,11 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
                 ->setIsStored($faker->boolean(30)); // 30% chance of being stored
 
             $manager->persist($car);
+            $this->addReference(sprintf(self::CAR_REFERENCE, $i), $car);
         }
 
         // Create 5 cars WITHOUT optional fields
-        for ($i = 1; $i <= 5; ++$i) {
+        for ($i = 6; $i <= 10; ++$i) {
             $car = new Car();
             $carInfo = $faker->randomElement($carData);
             $colorName = $faker->randomElement($this->colorNames);
@@ -87,6 +90,7 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
 
             // Optional fields remain null
             $manager->persist($car);
+            $this->addReference(sprintf(self::CAR_REFERENCE, $i), $car);
         }
 
         $manager->flush();
