@@ -46,6 +46,35 @@ class InterventionFixtures extends Fixture implements DependentFixtureInterface
                 ->setDocumentType($faker->randomElement(DocumentType::cases()))
                 ->setCar($car);
 
+            // Assign 1-3 mechanics to this intervention
+            /*
+            $mechanicCount = $faker->numberBetween(1, 3);
+            $usedMechanics = [];
+
+            for ($m = 0; $m < $mechanicCount; ++$m) {
+                $mechanicIndex = $faker->numberBetween(1, 5);
+
+                // Avoid duplicate mechanics in same intervention
+                if (!in_array($mechanicIndex, $usedMechanics)) {
+                    $mechanic = $this->getReference(
+                        sprintf(MechanicFixtures::MECHANIC_REFERENCE, $mechanicIndex),
+                        \App\Entity\Mechanic::class
+                    );
+                    $intervention->addMechanic($mechanic);
+                    $usedMechanics[] = $mechanicIndex;
+                }
+            }
+            */
+
+            // Assign only one mechanic for task.
+            $mechanicIndex = $faker->numberBetween(1, 5);
+            // Avoid duplicate mechanics in same intervention
+            $mechanic = $this->getReference(
+                sprintf(MechanicFixtures::MECHANIC_REFERENCE, $mechanicIndex),
+                \App\Entity\Mechanic::class
+            );
+            $intervention->addMechanic($mechanic);
+
             // Optional fields - 50% chance each
             if ($faker->boolean(50)) {
                 $intervention->setClientRequest($faker->paragraph(3));
@@ -64,6 +93,6 @@ class InterventionFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return [CarFixtures::class];
+        return [CarFixtures::class, MechanicFixtures::class];
     }
 }

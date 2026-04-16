@@ -54,9 +54,17 @@ class Intervention
     #[Assert\Count(min: 1, minMessage: 'An intervention must must consists of at least one intervention task.')]
     private Collection $interventionTasks;
 
+    /**
+     * @var Collection<int, Mechanic>
+     */
+    #[ORM\ManyToMany(targetEntity: Mechanic::class, mappedBy: 'interventions')]
+    #[Assert\Count(min: 1, minMessage: 'An intervention must be performed by at least one mechanic.')]
+    private Collection $mechanics;
+
     public function __construct()
     {
         $this->interventionTasks = new ArrayCollection();
+        $this->mechanics = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -185,6 +193,33 @@ class Intervention
             if ($interventionTask->getIntervention() === $this) {
                 $interventionTask->setIntervention(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Mechanic>
+     */
+    public function getMechanics(): Collection
+    {
+        return $this->mechanics;
+    }
+
+    public function addMechanic(Mechanic $mechanic): static
+    {
+        if (!$this->mechanics->contains($mechanic)) {
+            $this->mechanics->add($mechanic);
+            $mechanic->addIntervention($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMechanic(Mechanic $mechanic): static
+    {
+        if ($this->mechanics->removeElement($mechanic)) {
+            $mechanic->removeIntervention($this);
         }
 
         return $this;

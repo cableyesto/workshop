@@ -12,6 +12,8 @@ use Faker\Factory;
 
 class MechanicFixtures extends Fixture implements DependentFixtureInterface
 {
+    public const MECHANIC_REFERENCE = 'mechanic_%d';
+
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create('fr_FR');
@@ -47,6 +49,7 @@ class MechanicFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $manager->persist($mechanic);
+            $this->addReference(sprintf(self::MECHANIC_REFERENCE, $i), $mechanic);
         }
 
         $manager->flush();
