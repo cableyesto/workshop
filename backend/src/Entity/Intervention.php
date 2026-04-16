@@ -1,13 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Enum\DocumentType;
 use App\Enum\InterventionStatus;
 use App\Enum\InterventionType;
 use App\Repository\InterventionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: InterventionRepository::class)]
 class Intervention
@@ -41,6 +46,18 @@ class Intervention
     #[ORM\ManyToOne(inversedBy: 'interventions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Car $car = null;
+
+    /**
+     * @var Collection<int, InterventionTask>
+     */
+    #[ORM\OneToMany(targetEntity: InterventionTask::class, mappedBy: 'intervention')]
+    #[Assert\Count(min: 1, minMessage: 'An intervention must must consists of at least one intervention task.')]
+    private Collection $interventionTasks;
+
+    public function __construct()
+    {
+        $this->interventionTasks = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -139,6 +156,36 @@ class Intervention
     public function setCar(?Car $car): static
     {
         $this->car = $car;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, InterventionTask>
+     */
+    public function getInterventionTasks(): Collection
+    {
+        return $this->interventionTasks;
+    }
+
+    public function addInterventionTask(InterventionTask $interventionTask): static
+    {
+        if (!$this->interventionTasks->contains($interventionTask)) {
+            $this->interventionTasks->add($interventionTask);
+            $interventionTask->setIntervention($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInterventionTask(InterventionTask $interventionTask): static
+    {
+        if ($this->interventionTasks->removeElement($interventionTask)) {
+            // set the owning side to null (unless already changed)
+            if ($interventionTask->getIntervention() === $this) {
+                $interventionTask->setIntervention(null);
+            }
+        }
 
         return $this;
     }

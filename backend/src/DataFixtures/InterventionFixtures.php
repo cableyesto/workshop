@@ -15,6 +15,8 @@ use Faker\Factory;
 
 class InterventionFixtures extends Fixture implements DependentFixtureInterface
 {
+    public const INTERVENTION_REFERENCE = 'intervention_%d';
+
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create('fr_FR');
@@ -54,6 +56,7 @@ class InterventionFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $manager->persist($intervention);
+            $this->addReference(sprintf(self::INTERVENTION_REFERENCE, $i), $intervention);
         }
 
         $manager->flush();
