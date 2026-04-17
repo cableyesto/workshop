@@ -8,9 +8,10 @@ use App\Repository\MechanicRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: MechanicRepository::class)]
-class Mechanic extends Employee
+class Mechanic extends Employee implements UserInterface
 {
     #[ORM\Column(length: 255)]
     private ?string $pin = null;
@@ -75,5 +76,31 @@ class Mechanic extends Employee
         $this->interventions->removeElement($intervention);
 
         return $this;
+    }
+
+    /**
+     * Returns the identifier for this user (used by Symfony security).
+     * For Mechanic, we use the ID as the identifier.
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->getId();
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getRoles(): array
+    {
+        return ['ROLE_MECHANIC'];
+    }
+
+    /**
+     * This method can be used to erase sensitive data from the user object.
+     * We don't store plain-text credentials, so nothing to erase.
+     */
+    public function eraseCredentials(): void
+    {
+        // Nothing to erase - PIN is already hashed
     }
 }

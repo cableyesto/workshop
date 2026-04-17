@@ -1,48 +1,100 @@
 security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        App\Entity\Owner: 'auto'
+        App\Entity\Receptionist: 'auto'
+        # Mechanic PIN is hashed manually in setPin() method
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        # used to reload user from session & other features (e.g. switch_user)
-        app_user_provider:
+        # Combined provider for EVERYTHING protected by JWT
+        all_users:
+            chain:
+                providers: ['owner_provider', 'receptionist_provider', 'mechanic_provider']
+
+        # Chain provider for email/password authentication (Owner + Receptionist)
+        email_users:
+            chain:
+                providers: ['owner_provider', 'receptionist_provider']
+
+        owner_provider:
+            entity:
+                class: App\Entity\Owner
+                property: email
+
+        receptionist_provider:
             entity:
                 class: App\Entity\Receptionist
                 property: email
-        # used to reload user from session & other features (e.g. switch_user)
-        # used to reload user from session & other features (e.g. switch_user)
 
+        # Separate provider for mechanics (PIN authentication)
+        mechanic_provider:
+            entity:
+                class: App\Entity\Mechanic
+                property: id
 
     firewalls:
         dev:
-            # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        main:
-            lazy: true
-            provider: app_user_provider
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
+        # Login endpoint for Owner + Receptionist (email/password)
+        login:
+            pattern: ^/api/login
+            stateless: true
+            provider: email_users
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+        # Login endpoint for Mechanic (PIN authentication with garage SIRET)
+        # Pattern: /api/garage/{siret}/mechanic/login
+        mechanic_login:
+            pattern: ^/api/garage/[^/]+/mechanic/login
+            stateless: true
+            provider: mechanic_provider
+            # Custom authenticator will be added here
+            custom_authenticators:
+                - App\Security\MechanicPinAuthenticator
 
-    # Note: Only the *first* matching rule is applied
+        # Protected API routes (require JWT authentication)
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: all_users
+            jwt: ~
+#        main:
+#            custom_authenticators:
+#                - App\Security\MechanicPinAuthenticator
+
+    # Role hierarchy (optional)
+    role_hierarchy:
+        ROLE_ADMIN: ROLE_USER
+        ROLE_OWNER: ROLE_USER
+        ROLE_RECEPTIONIST: ROLE_USER
+        ROLE_MECHANIC: ROLE_USER
+
+    # Access control rules
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
-#    access_control:
-#    - { path: ^/owner, roles: ROLE_OWNER }
-#    - { path: ^/receptionist, roles: ROLE_RECEPTIONIST }
-#    - { path: ^/mechanic, roles: ROLE_MECHANIC }
+        # Public endpoints
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/garage/[^/]+/mechanic/login, roles: PUBLIC_ACCESS }
+
+        # Protected API endpoints (require authentication)
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+        # Role-based access (examples - uncomment and customize as needed)
+        # - { path: ^/api/owner, roles: ROLE_OWNER }
+        # - { path: ^/api/receptionist, roles: ROLE_RECEPTIONIST }
+        # - { path: ^/api/mechanic, roles: ROLE_MECHANIC }
 
 when@test:
     security:
         password_hashers:
-            # Password hashers are resource-intensive by design to ensure security.
-            # In tests, it's safe to reduce their cost to improve performance.
+            # Reduce cost in tests for better performance
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
                 cost: 4 # Lowest possible value for bcrypt
