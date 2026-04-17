@@ -18,6 +18,22 @@ class MechanicRepository extends ServiceEntityRepository
         parent::__construct($registry, Mechanic::class);
     }
 
+    /**
+     * Find all mechanics working at a specific garage.
+     * More efficient than loading all employees and filtering.
+     *
+     * @return Mechanic[]
+     */
+    public function findByGarage(int $garageId): array
+    {
+        return $this->createQueryBuilder('m')
+            ->innerJoin('m.garages', 'g')
+            ->where('g.id = :garageId')
+            ->setParameter('garageId', $garageId)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Mechanic[] Returns an array of Mechanic objects
     //     */

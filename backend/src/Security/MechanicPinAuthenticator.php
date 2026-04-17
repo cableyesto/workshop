@@ -6,6 +6,7 @@ namespace App\Security;
 
 use App\Entity\Mechanic;
 use App\Repository\GarageRepository;
+use App\Repository\MechanicRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ class MechanicPinAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
         private readonly GarageRepository $garageRepository,
+        private readonly MechanicRepository $mechanicRepository,
         private readonly JWTTokenManagerInterface $jwtManager,
     ) {
     }
@@ -72,19 +74,18 @@ class MechanicPinAuthenticator extends AbstractAuthenticator
             throw new CustomUserMessageAuthenticationException('Garage not found.');
         }
 
-        // 4. Find all mechanics working at this garage
-        $mechanics = $garage->getEmployees()->filter(
-            fn ($employee) => $employee instanceof Mechanic
-        );
+        // 4. Find all mechanics working at this garage (optimized query)
+        $mechanics = $this->mechanicRepository->findByGarage($garage->getId());
 
-        if ($mechanics->isEmpty()) {
+        if (empty($mechanics)) {
             throw new CustomUserMessageAuthenticationException('Invalid credentials.');
         }
 
         // 5. Search for mechanic with matching PIN
+        // Note: Cannot query by PIN directly due to bcrypt's random salt per record
+        // Must iterate and verify each PIN with password_verify()
         $authenticatedMechanic = null;
         foreach ($mechanics as $mechanic) {
-            /** @var Mechanic $mechanic */
             if ($mechanic->verifyPin($pin)) {
                 $authenticatedMechanic = $mechanic;
                 break;
