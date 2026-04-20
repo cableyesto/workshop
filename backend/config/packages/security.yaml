@@ -38,28 +38,6 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
 
-        # Login endpoint for Owner + Receptionist (email/password)
-        login:
-            pattern: ^/api/login
-            stateless: true
-            provider: email_users
-            json_login:
-                check_path: /api/login
-                username_path: email
-                password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
-
-        # Login endpoint for Mechanic (PIN authentication with garage SIRET)
-        # Pattern: /api/garage/{siret}/mechanic/login
-        mechanic_login:
-            pattern: ^/api/garage/[^/]+/mechanic/login
-            stateless: true
-            provider: mechanic_provider
-            # Custom authenticator will be added here
-            custom_authenticators:
-                - App\Security\MechanicPinAuthenticator
-
         # Protected API routes (require JWT authentication)
         api:
             pattern: ^/api
@@ -79,11 +57,11 @@ security:
 
     # Access control rules
     access_control:
-        # Public endpoints
-        - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/garage/[^/]+/mechanic/login, roles: PUBLIC_ACCESS }
+        # Public login endpoints (handled by controllers)
+        - { path: ^/api/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/garage/[^/]+/mechanic/login$, roles: PUBLIC_ACCESS }
 
-        # Protected API endpoints (require authentication)
+        # Protected API endpoints (require JWT authentication)
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
         # Role-based access (examples - uncomment and customize as needed)
