@@ -58,7 +58,7 @@ final class LoginController extends AbstractController
         // Generate JWT access token
         $token = $this->jwtManager->create($user);
 
-        // Revoke all existing refresh tokens for this user (Option 1: Single session per user)
+        // Revoke all existing refresh tokens for this user
         // This prevents database bloat and ensures only one active session
         $this->revokeExistingTokens($user->getUserIdentifier());
 
