@@ -6,8 +6,11 @@ namespace App\Controller\Api;
 
 use App\Repository\OwnerRepository;
 use App\Repository\ReceptionistRepository;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -24,6 +27,10 @@ final class LoginController extends AbstractController
         private readonly ReceptionistRepository $receptionistRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly JWTTokenManagerInterface $jwtManager,
+        private readonly RefreshTokenGeneratorInterface $refreshTokenGenerator,
+        private readonly RefreshTokenManagerInterface $refreshTokenManager,
+        private readonly int $refreshTokenTtl,
+        private readonly array $cookieConfig,
     ) {
     }
 
@@ -46,9 +53,34 @@ final class LoginController extends AbstractController
             return $this->json(['error' => 'Invalid credentials'], 401);
         }
 
-        // Generate JWT token
+        // Generate JWT access token
         $token = $this->jwtManager->create($user);
 
-        return $this->json(['token' => $token]);
+        // Generate refresh token
+        $refreshToken = $this->refreshTokenGenerator->createForUserWithTtl(
+            $user,
+            $this->refreshTokenTtl
+        );
+        $this->refreshTokenManager->save($refreshToken);
+
+        // Create response with access token
+        $response = $this->json([
+            'token' => $token,
+            'refresh_token' => $refreshToken->getRefreshToken(),
+        ]);
+
+        // Set refresh token as HttpOnly cookie (using config from gesdinet_jwt_refresh_token.yaml)
+        $cookie = Cookie::create('refresh_token')
+            ->withValue($refreshToken->getRefreshToken())
+            ->withExpires(new \DateTime(sprintf('+%d seconds', $this->refreshTokenTtl)))
+            ->withPath($this->cookieConfig['path'] ?? '/')
+            ->withDomain($this->cookieConfig['domain'])
+            ->withSecure($this->cookieConfig['secure'] ?? false)
+            ->withHttpOnly($this->cookieConfig['http_only'] ?? true)
+            ->withSameSite($this->cookieConfig['same_site'] ?? Cookie::SAMESITE_LAX);
+
+        $response->headers->setCookie($cookie);
+
+        return $response;
     }
 }

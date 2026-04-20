@@ -57,9 +57,10 @@ security:
 
     # Access control rules
     access_control:
-        # Public login endpoints (handled by controllers)
+        # Public endpoints
         - { path: ^/api/login$, roles: PUBLIC_ACCESS }
         - { path: ^/api/garage/[^/]+/mechanic/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/token/refresh$, roles: PUBLIC_ACCESS }
 
         # Protected API endpoints (require JWT authentication)
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
