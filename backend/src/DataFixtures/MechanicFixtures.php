@@ -18,6 +18,9 @@ class MechanicFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create('fr_FR');
 
+        // Predefined PINs for testing (easy to remember and test)
+        $pins = ['1234', '5678', '9012', '3456', '7890'];
+
         for ($i = 1; $i <= 5; ++$i) {
             $mechanic = new Mechanic();
 
@@ -27,8 +30,8 @@ class MechanicFixtures extends Fixture implements DependentFixtureInterface
                 ->setBirthDate(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-50 years', '-20 years')))
                 ->setStartDate(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-5 years', 'now')));
 
-            // Mechanic field - 4-digit PIN (validated and hashed in setPin)
-            $pin = $faker->numerify('####');
+            // Mechanic field - Use predefined PIN from array
+            $pin = $pins[$i - 1]; // $i starts at 1, array starts at 0
             $mechanic->setPin($pin);
 
             // Associate with 1-2 garages (employee must have at least 1)
