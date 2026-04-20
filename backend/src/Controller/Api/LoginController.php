@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\Repository\OwnerRepository;
 use App\Repository\ReceptionistRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -29,6 +30,7 @@ final class LoginController extends AbstractController
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly RefreshTokenGeneratorInterface $refreshTokenGenerator,
         private readonly RefreshTokenManagerInterface $refreshTokenManager,
+        private readonly EntityManagerInterface $entityManager,
         private readonly int $refreshTokenTtl,
         private readonly array $cookieConfig,
     ) {
@@ -56,7 +58,11 @@ final class LoginController extends AbstractController
         // Generate JWT access token
         $token = $this->jwtManager->create($user);
 
-        // Generate refresh token
+        // Revoke all existing refresh tokens for this user (Option 1: Single session per user)
+        // This prevents database bloat and ensures only one active session
+        $this->revokeExistingTokens($user->getUserIdentifier());
+
+        // Generate new refresh token
         $refreshToken = $this->refreshTokenGenerator->createForUserWithTtl(
             $user,
             $this->refreshTokenTtl
@@ -82,5 +88,20 @@ final class LoginController extends AbstractController
         $response->headers->setCookie($cookie);
 
         return $response;
+    }
+
+    /**
+     * Revoke all existing refresh tokens for a user.
+     * This ensures only one active session per user and prevents database bloat.
+     */
+    private function revokeExistingTokens(string $username): void
+    {
+        $connection = $this->entityManager->getConnection();
+
+        // Delete all refresh tokens for this user
+        $connection->executeStatement(
+            'DELETE FROM refresh_tokens WHERE username = :username',
+            ['username' => $username]
+        );
     }
 }
