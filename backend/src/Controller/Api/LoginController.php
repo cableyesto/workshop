@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\Entity\Owner;
+use App\Entity\Receptionist;
+use App\Repository\GarageRepository;
 use App\Repository\OwnerRepository;
 use App\Repository\ReceptionistRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,6 +29,7 @@ final class LoginController extends AbstractController
     public function __construct(
         private readonly OwnerRepository $ownerRepository,
         private readonly ReceptionistRepository $receptionistRepository,
+        private readonly GarageRepository $garageRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly RefreshTokenGeneratorInterface $refreshTokenGenerator,
@@ -53,6 +57,31 @@ final class LoginController extends AbstractController
         // Validate credentials
         if (!$user || !$this->passwordHasher->isPasswordValid($user, $data['password'])) {
             return $this->json(['error' => 'Invalid credentials'], 401);
+        }
+
+        // Handle garage-scoped authentication for Receptionist
+        if ($user instanceof Receptionist) {
+            // Receptionist MUST provide SIRET
+            if (!isset($data['siret'])) {
+                return $this->json(['error' => 'SIRET required for receptionist login'], 400);
+            }
+
+            // Find garage by SIRET
+            $garage = $this->garageRepository->findOneBy(['siretNumber' => $data['siret']]);
+
+            // Validate garage exists and receptionist works there
+            if (!$garage || !$user->getGarages()->contains($garage)) {
+                return $this->json(['error' => 'Invalid credentials'], 401);
+            }
+
+            // Store garage context in request attributes for JWT event listener
+            $request->attributes->set('garage_context', [
+                'garage_id' => $garage->getId(),
+                'garage_siret' => $garage->getSiretNumber(),
+            ]);
+        } elseif ($user instanceof Owner) {
+            // Owner: SIRET is ignored even if provided
+            // Multi-garage access - no garage context needed
         }
 
         // Generate JWT access token
