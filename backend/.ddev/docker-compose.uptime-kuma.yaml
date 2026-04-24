@@ -1,0 +1,20 @@
+version: "3.6"
+services:
+  uptime-kuma:
+    container_name: ddev-${DDEV_SITENAME}-uptime-kuma
+    image: louislam/uptime-kuma:1
+    restart: "no"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    ports:
+      - "3001"
+    environment:
+      - VIRTUAL_HOST=${DDEV_HOSTNAME}
+      #- HTTP_EXPOSE=8080:3001    # HTTP access
+      - HTTPS_EXPOSE=8028:3001   # HTTPS access
+    volumes:
+      - uptime-kuma-data:/app/data
+
+volumes:
+  uptime-kuma-data:
