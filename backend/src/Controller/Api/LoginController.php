@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +36,7 @@ final class LoginController extends AbstractController
         private readonly RefreshTokenGeneratorInterface $refreshTokenGenerator,
         private readonly RefreshTokenManagerInterface $refreshTokenManager,
         private readonly EntityManagerInterface $entityManager,
+        private readonly LoggerInterface $securityLogger,
         private readonly int $refreshTokenTtl,
         private readonly array $cookieConfig,
     ) {
@@ -56,6 +58,11 @@ final class LoginController extends AbstractController
 
         // Validate credentials
         if (!$user || !$this->passwordHasher->isPasswordValid($user, $data['password'])) {
+            $this->securityLogger->warning('Failed login attempt', [
+                'email' => $data['email'],
+                'ip' => $request->getClientIp(),
+            ]);
+
             return $this->json(['error' => 'Invalid credentials'], 401);
         }
 
@@ -63,6 +70,11 @@ final class LoginController extends AbstractController
         if ($user instanceof Receptionist) {
             // Receptionist MUST provide SIRET
             if (!isset($data['siret'])) {
+                $this->securityLogger->warning('Receptionist login missing SIRET', [
+                    'email' => $user->getEmail(),
+                    'ip' => $request->getClientIp(),
+                ]);
+
                 return $this->json(['error' => 'SIRET required for receptionist login'], 400);
             }
 
@@ -71,6 +83,12 @@ final class LoginController extends AbstractController
 
             // Validate garage exists and receptionist works there
             if (!$garage || !$user->getGarages()->contains($garage)) {
+                $this->securityLogger->warning('Receptionist login invalid garage', [
+                    'email' => $user->getEmail(),
+                    'siret' => $data['siret'],
+                    'ip' => $request->getClientIp(),
+                ]);
+
                 return $this->json(['error' => 'Invalid credentials'], 401);
             }
 

@@ -7,6 +7,7 @@ namespace App\Controller\Api;
 use App\Repository\GarageRepository;
 use App\Repository\MechanicRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +24,7 @@ final class MechanicLoginController extends AbstractController
         private readonly GarageRepository $garageRepository,
         private readonly MechanicRepository $mechanicRepository,
         private readonly JWTTokenManagerInterface $jwtManager,
+        private readonly LoggerInterface $securityLogger,
     ) {
     }
 
@@ -39,6 +41,11 @@ final class MechanicLoginController extends AbstractController
         // Find garage by SIRET
         $garage = $this->garageRepository->findOneBy(['siretNumber' => $siret]);
         if (!$garage) {
+            $this->securityLogger->warning('Mechanic login invalid garage', [
+                'siret' => $siret,
+                'ip' => $request->getClientIp(),
+            ]);
+
             return $this->json(['error' => 'Invalid credentials'], 401);
         }
 
@@ -46,6 +53,12 @@ final class MechanicLoginController extends AbstractController
         $mechanics = $this->mechanicRepository->findByGarage($garage->getId());
 
         if (empty($mechanics)) {
+            $this->securityLogger->warning('Mechanic login no mechanics at garage', [
+                'siret' => $siret,
+                'garage_id' => $garage->getId(),
+                'ip' => $request->getClientIp(),
+            ]);
+
             return $this->json(['error' => 'Invalid credentials'], 401);
         }
 
@@ -59,6 +72,12 @@ final class MechanicLoginController extends AbstractController
         }
 
         if (!$authenticatedMechanic) {
+            $this->securityLogger->warning('Mechanic login invalid PIN', [
+                'siret' => $siret,
+                'garage_id' => $garage->getId(),
+                'ip' => $request->getClientIp(),
+            ]);
+
             return $this->json(['error' => 'Invalid credentials'], 401);
         }
 
