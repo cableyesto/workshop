@@ -44,6 +44,8 @@ security:
             stateless: true
             provider: all_users
             jwt: ~
+            logout:
+                path: /api/logout
 #        main:
 #            custom_authenticators:
 #                - App\Security\MechanicPinAuthenticator
