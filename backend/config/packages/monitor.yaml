@@ -1,0 +1,16 @@
+liip_monitor:
+    # enabling the controller requires that `assets` are enabled in the framework bundle
+    #enable_controller: false
+    enable_controller: true
+    checks:
+        doctrine_dbal:
+            connection: default
+
+        opcache_memory:
+            warning: 70
+            critical: 90
+
+        disk_usage:
+            path: '%kernel.project_dir%'
+            warning: 70
+            critical: 90

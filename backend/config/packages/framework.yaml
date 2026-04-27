@@ -5,6 +5,9 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    # Required for liip/monitor-bundle controller (even for JSON endpoint)
+    assets: ~
+
     #esi: true
     #fragments: true
 

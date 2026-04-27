@@ -9,3 +9,7 @@
 
 controllers:
     resource: routing.controllers
+
+_monitor:
+    resource: "@LiipMonitorBundle/Resources/config/routing.yaml"
+    prefix: /api/health
