@@ -21,4 +21,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://backend.ddev.site',
+        changeOrigin: true,
+        secure: false, // Allow self-signed certificates (DDEV)
+      },
+    },
+  },
 })

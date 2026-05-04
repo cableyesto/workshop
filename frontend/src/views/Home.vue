@@ -19,28 +19,26 @@ const navigateToMechanicLogin = () => {
 
 <template>
   <div class="flex h-full min-h-screen items-center justify-center bg-slate-50">
-    <div class="flex flex-col items-center gap-12">
-      <h1 class="text-4xl font-bold text-gray-900">
-        Quel utilisateur se connecte ?
-      </h1>
+    <div class="flex flex-col items-center gap-12 2xl:gap-20">
+      <h1 class="text-4xl font-bold text-gray-900 2xl:text-6xl">Quel utilisateur se connecte ?</h1>
 
-      <div class="flex gap-6">
+      <div class="flex gap-6 2xl:gap-10">
         <Button
-          class="h-24 w-48 bg-cyan-800 text-lg font-semibold hover:bg-cyan-900"
+          class="h-24 w-48 bg-cyan-800 text-lg font-semibold hover:bg-cyan-900 2xl:h-36 2xl:w-72 2xl:text-3xl"
           @click="navigateToOwnerLogin"
         >
           Propriétaire
         </Button>
 
         <Button
-          class="h-24 w-48 bg-[#3e8eab] text-lg font-semibold hover:bg-[#357a92]"
+          class="h-24 w-48 bg-[#3e8eab] text-lg font-semibold hover:bg-[#357a92] 2xl:h-36 2xl:w-72 2xl:text-3xl"
           @click="navigateToReceptionistLogin"
         >
           Accueil
         </Button>
 
         <Button
-          class="h-24 w-48 bg-cyan-800 text-lg font-semibold hover:bg-cyan-900"
+          class="h-24 w-48 bg-cyan-800 text-lg font-semibold hover:bg-cyan-900 2xl:h-36 2xl:w-72 2xl:text-3xl"
           @click="navigateToMechanicLogin"
         >
           Mécanicien
