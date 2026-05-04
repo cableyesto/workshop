@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { toTypedSchema } from '@vee-validate/zod'
+import { useForm, Field as VeeField } from 'vee-validate'
+import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
 const props = defineProps<{
@@ -16,10 +19,6 @@ const emit = defineEmits<{
   submit: [credentials: { email: string; password: string; siret?: string }]
 }>()
 
-const email = ref('')
-const password = ref('')
-const siret = ref('')
-
 const title = computed(() =>
   props.userType === 'owner' ? 'Connexion Propriétaire' : 'Connexion Réceptionniste',
 )
@@ -30,18 +29,44 @@ const description = computed(() =>
     : 'Entrez le SIRET du garage et vos identifiants',
 )
 
-function handleSubmit() {
+const formSchema = toTypedSchema(
+  z.object({
+    siret: z
+      .string()
+      .optional()
+      .refine(
+        (val) => (props.userType === 'owner' ? true : val?.length === 14),
+        'SIRET doit contenir 14 caractères',
+      ),
+    email: z.string().email('Adresse email invalide').min(1, 'Email requis'),
+    password: z
+      .string()
+      .min(1, 'Mot de passe requis')
+      .max(50, 'Le mot de passe ne peut pas dépasser 50 caractères'),
+  }),
+)
+
+const { handleSubmit } = useForm({
+  validationSchema: formSchema,
+  initialValues: {
+    siret: '',
+    email: '',
+    password: '',
+  },
+})
+
+const onSubmit = handleSubmit((values) => {
   const credentials: { email: string; password: string; siret?: string } = {
-    email: email.value,
-    password: password.value,
+    email: values.email,
+    password: values.password,
   }
 
   if (props.userType === 'receptionist') {
-    credentials.siret = siret.value
+    credentials.siret = values.siret
   }
 
   emit('submit', credentials)
-}
+})
 </script>
 
 <template>
@@ -52,46 +77,55 @@ function handleSubmit() {
         <CardDescription class="2xl:text-xl 2xl:pt-4">{{ description }}</CardDescription>
       </CardHeader>
       <CardContent class="2xl:px-10 2xl:pb-10">
-        <form @submit.prevent="handleSubmit">
+        <form @submit="onSubmit">
           <FieldGroup>
             <!-- SIRET field: Only for receptionist -->
-            <Field v-if="userType === 'receptionist'">
-              <FieldLabel for="siret" class="2xl:text-xl">SIRET</FieldLabel>
-              <Input
-                id="siret"
-                v-model="siret"
-                type="text"
-                placeholder="12345678901234"
-                maxlength="14"
-                class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
-                required
-              />
-            </Field>
+            <VeeField v-if="userType === 'receptionist'" v-slot="{ field, errors }" name="siret">
+              <Field :data-invalid="!!errors.length">
+                <FieldLabel for="siret" class="2xl:text-xl">SIRET</FieldLabel>
+                <Input
+                  id="siret"
+                  v-bind="field"
+                  type="text"
+                  placeholder="12345678901234"
+                  maxlength="14"
+                  class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
+                  :aria-invalid="!!errors.length"
+                />
+                <FieldError v-if="errors.length" :errors="errors" />
+              </Field>
+            </VeeField>
 
             <!-- Email field: Both -->
-            <Field>
-              <FieldLabel for="email" class="2xl:text-xl">Email</FieldLabel>
-              <Input
-                id="email"
-                v-model="email"
-                type="email"
-                placeholder="votre@email.com"
-                class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
-                required
-              />
-            </Field>
+            <VeeField v-slot="{ field, errors }" name="email">
+              <Field :data-invalid="!!errors.length">
+                <FieldLabel for="email" class="2xl:text-xl">Email</FieldLabel>
+                <Input
+                  id="email"
+                  v-bind="field"
+                  type="email"
+                  placeholder="votre@email.com"
+                  class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
+                  :aria-invalid="!!errors.length"
+                />
+                <FieldError v-if="errors.length" :errors="errors" />
+              </Field>
+            </VeeField>
 
             <!-- Password field: Both -->
-            <Field class="2xl:pb-6">
-              <FieldLabel for="password" class="2xl:text-xl">Mot de passe</FieldLabel>
-              <Input
-                id="password"
-                v-model="password"
-                type="password"
-                class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
-                required
-              />
-            </Field>
+            <VeeField v-slot="{ field, errors }" name="password">
+              <Field :data-invalid="!!errors.length" class="2xl:pb-6">
+                <FieldLabel for="password" class="2xl:text-xl">Mot de passe</FieldLabel>
+                <Input
+                  id="password"
+                  v-bind="field"
+                  type="password"
+                  class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
+                  :aria-invalid="!!errors.length"
+                />
+                <FieldError v-if="errors.length" :errors="errors" />
+              </Field>
+            </VeeField>
 
             <!-- Submit button -->
             <Field>
