@@ -18,6 +18,11 @@ const router = createRouter({
       name: 'receptionist-login',
       component: () => import('@/views/ReceptionistLogin.vue'),
     },
+    {
+      path: '/receptionist/dashboard',
+      name: 'receptionist-dashboard',
+      component: () => import('@/views/ReceptionistDashboard.vue'),
+    },
   ],
 })
 

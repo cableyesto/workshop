@@ -91,6 +91,7 @@ const onSubmit = handleSubmit((values) => {
                   maxlength="14"
                   class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
                   :aria-invalid="!!errors.length"
+                  required
                 />
                 <FieldError v-if="errors.length" :errors="errors" />
               </Field>
@@ -107,6 +108,7 @@ const onSubmit = handleSubmit((values) => {
                   placeholder="votre@email.com"
                   class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
                   :aria-invalid="!!errors.length"
+                  required
                 />
                 <FieldError v-if="errors.length" :errors="errors" />
               </Field>
@@ -122,6 +124,7 @@ const onSubmit = handleSubmit((values) => {
                   type="password"
                   class="bg-slate-50 focus-visible:border-cyan-900/60 focus-visible:ring-cyan-900/30 selection:bg-cyan-900 2xl:h-12 2xl:text-lg"
                   :aria-invalid="!!errors.length"
+                  required
                 />
                 <FieldError v-if="errors.length" :errors="errors" />
               </Field>
