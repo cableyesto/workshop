@@ -14,12 +14,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
         </div>
       </header>
       <main class="flex flex-1 flex-col gap-4 p-4">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-          <div class="aspect-video rounded-xl bg-slate-100" />
-          <div class="aspect-video rounded-xl bg-slate-100" />
-          <div class="aspect-video rounded-xl bg-slate-100" />
-        </div>
-        <div class="min-h-screen flex-1 rounded-xl bg-slate-100 md:min-h-min" />
+        <router-view />
       </main>
     </SidebarInset>
   </SidebarProvider>

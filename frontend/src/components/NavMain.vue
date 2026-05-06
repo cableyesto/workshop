@@ -25,10 +25,10 @@ withDefaults(
   <SidebarMenu :class="spacing">
     <SidebarMenuItem v-for="item in items" :key="item.name">
       <SidebarMenuButton as-child :tooltip="item.name">
-        <a :href="item.url">
+        <router-link :to="item.url">
           <component :is="item.icon" />
           <span>{{ item.name }}</span>
-        </a>
+        </router-link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   </SidebarMenu>

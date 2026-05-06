@@ -14,7 +14,7 @@ const data = {
   main: [
     {
       name: 'Garage',
-      url: '#',
+      url: '/receptionist/dashboard/garage',
       icon: House,
     },
     /*{
@@ -24,22 +24,22 @@ const data = {
     },*/
     {
       name: 'Interventions',
-      url: '#',
+      url: '/receptionist/dashboard/interventions',
       icon: KeySquare,
     },
     {
       name: 'Voitures',
-      url: '#',
+      url: '/receptionist/dashboard/cars',
       icon: Car,
     },
     {
       name: 'Employés',
-      url: '#',
+      url: '/receptionist/dashboard/employees',
       icon: Contact,
     },
     {
       name: 'Configuration',
-      url: '#',
+      url: '/receptionist/dashboard/configuration',
       icon: Settings,
     },
   ],
