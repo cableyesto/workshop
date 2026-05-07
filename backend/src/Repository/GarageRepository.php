@@ -18,6 +18,20 @@ class GarageRepository extends ServiceEntityRepository
         parent::__construct($registry, Garage::class);
     }
 
+    /**
+     * Find garage by ID with time_slots joined.
+     */
+    public function findWithTimeSlots(int $id): ?Garage
+    {
+        return $this->createQueryBuilder('g')
+            ->leftJoin('g.timeSlots', 't')
+            ->addSelect('t')
+            ->where('g.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Garage[] Returns an array of Garage objects
     //     */

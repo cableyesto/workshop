@@ -9,9 +9,8 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(PiniaColada, {
-  // Optionally provide global options here for queries
   queryOptions: {
-    gcTime: 300_000, // 5 minutes, the default
+    gcTime: 1000 * 60 * 30, // 30 minutes
   },
 })
 app.use(router)
