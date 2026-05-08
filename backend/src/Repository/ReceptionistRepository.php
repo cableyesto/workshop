@@ -35,6 +35,21 @@ class ReceptionistRepository extends ServiceEntityRepository implements Password
         $this->getEntityManager()->flush();
     }
 
+    /**
+     * Find all receptionists working at a specific garage.
+     *
+     * @return Receptionist[]
+     */
+    public function findByGarage(int $garageId): array
+    {
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.garages', 'g')
+            ->where('g.id = :garageId')
+            ->setParameter('garageId', $garageId)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Receptionist[] Returns an array of Receptionist objects
     //     */
