@@ -8,7 +8,8 @@ import EmployeeDialog from '../../components/EmployeeDialog.vue'
 import {
   useMechanicsQuery,
   useReceptionistsQuery,
-  createMechanicAPI,
+  useCreateMechanicMutation,
+  useUpdateMechanicMutation,
   createReceptionistAPI,
 } from '../../api/employees'
 import type { EmployeeFormData, Mechanic, Receptionist } from '../../types/employee'
@@ -28,23 +29,9 @@ const queryCache = useQueryCache()
 const { data: mechanics, isLoading: isLoadingMechanics } = useMechanicsQuery()
 const { data: receptionists, isLoading: isLoadingReceptionists } = useReceptionistsQuery()
 
-// Mechanic mutation
-const { mutate: createMechanic, isLoading: isCreatingMechanic } = useMutation({
-  key: ['create-mechanic'],
-  mutation: createMechanicAPI,
-  onSuccess: () => {
-    isDialogOpen.value = false
-    queryCache.invalidateQueries({
-      key: ['mechanics'],
-      exact: true,
-    })
-  },
-  onError: (error) => {
-    console.error('Error creating mechanic:', error)
-    //TODO improve error displayed
-    alert(`Erreur: ${error.message}`)
-  },
-})
+// Mechanic mutations
+const { mutate: createMechanic, isLoading: isCreatingMechanic } = useCreateMechanicMutation(isDialogOpen)
+const { mutate: updateMechanic, isLoading: isUpdatingMechanic } = useUpdateMechanicMutation(isDialogOpen)
 
 // Receptionist mutation
 const { mutate: createReceptionist, isLoading: isCreatingReceptionist } = useMutation({
@@ -83,10 +70,15 @@ function handleCloseDialog() {
 }
 
 function handleSubmit(data: EmployeeFormData) {
-  if (dialogMode.value === 'edit') {
-    // TODO: Implement update mutations
-    console.log('Update employee:', { id: selectedEmployee.value?.id, data })
-    alert('Update functionality coming soon!')
+  if (dialogMode.value === 'edit' && selectedEmployee.value) {
+    // Update mode
+    if (data.type === 'mechanic') {
+      updateMechanic({ id: selectedEmployee.value.id, data })
+    } else {
+      // TODO: Implement receptionist update
+      console.log('Update receptionist:', { id: selectedEmployee.value.id, data })
+      alert('Receptionist update coming soon!')
+    }
   } else {
     // Create mode
     if (data.type === 'mechanic') {

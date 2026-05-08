@@ -51,9 +51,19 @@ const step1Schema = toTypedSchema(
     })
     .refine(
       (data) => {
-        // If mechanic, PIN must be exactly 4 digits
+        // Mechanic PIN validation
         if (props.type === 'mechanic') {
-          return /^\d{4}$/.test(data.pin || '')
+          // Create mode: PIN required
+          if (props.mode === 'create') {
+            return /^\d{4}$/.test(data.pin || '')
+          }
+          // Edit mode: PIN optional, but if provided must be valid
+          if (props.mode === 'edit') {
+            if (!data.pin || data.pin.length === 0) {
+              return true // Empty is OK in edit mode
+            }
+            return /^\d{4}$/.test(data.pin)
+          }
         }
         return true
       },
