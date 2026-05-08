@@ -9,13 +9,11 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class ReceptionistFixtures extends Fixture implements DependentFixtureInterface
 {
-    public function __construct(
-        private UserPasswordHasherInterface $passwordHasher
-    ) {
+    public function __construct()
+    {
     }
 
     public function load(ObjectManager $manager): void
@@ -25,18 +23,15 @@ class ReceptionistFixtures extends Fixture implements DependentFixtureInterface
         for ($i = 1; $i <= 5; ++$i) {
             $receptionist = new Receptionist();
 
-            $plainPassword = 'password123';
-            $hashedPassword = $this->passwordHasher->hashPassword($receptionist, $plainPassword);
-
             // Employee fields (parent)
             $receptionist->setLastName($faker->lastName())
                 ->setFirstName($faker->firstName())
                 ->setBirthDate(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-50 years', '-20 years')))
                 ->setStartDate(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-5 years', 'now')));
 
-            // Receptionist fields
+            // Receptionist fields (password will be hashed in setPassword)
             $receptionist->setEmail($faker->unique()->companyEmail())
-                ->setPassword($hashedPassword);
+                ->setPassword('password123');
 
             // Associate with 1-2 garages (employee must have at least 1)
             $garageCount = $faker->numberBetween(1, 2);

@@ -5,8 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import EmployeeTable from '../../components/EmployeeTable.vue'
 import EmployeeDialog from '../../components/EmployeeDialog.vue'
-import { useMechanicsQuery, useReceptionistsQuery, createMechanicAPI } from '../../api/employees'
-import { getToken } from '../../utils/auth'
+import {
+  useMechanicsQuery,
+  useReceptionistsQuery,
+  createMechanicAPI,
+  createReceptionistAPI,
+} from '../../api/employees'
 import type { EmployeeFormData } from '../../types/employee'
 
 const activeTab = ref<'receptionists' | 'mechanics'>('receptionists')
@@ -41,28 +45,9 @@ const { mutate: createMechanic, isLoading: isCreatingMechanic } = useMutation({
 })
 
 // Receptionist mutation
-const {
-  mutate: createReceptionist,
-  status,
-  asyncStatus,
-} = useMutation({
+const { mutate: createReceptionist, isLoading: isCreatingReceptionist } = useMutation({
   key: ['create-receptionist'],
-  mutation: async (data: EmployeeFormData) => {
-    const response = await fetch('/api/receptionists', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to create receptionist')
-    }
-
-    return response.json()
-  },
+  mutation: createReceptionistAPI,
   onSuccess: () => {
     isDialogOpen.value = false
     queryCache.invalidateQueries({
@@ -72,6 +57,7 @@ const {
   },
   onError: (error) => {
     console.error('Error creating receptionist:', error)
+    //TODO improve error displayed
     alert(`Erreur: ${error.message}`)
   },
 })
@@ -89,10 +75,6 @@ function handleSubmit(data: EmployeeFormData) {
     createMechanic(data)
   } else {
     createReceptionist(data)
-    console.log('Receptionist mutation called:', {
-      status: status.value,
-      asyncStatus: asyncStatus.value,
-    })
   }
 }
 </script>

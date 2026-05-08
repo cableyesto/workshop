@@ -6,8 +6,10 @@ namespace App\Controller\Api;
 
 use App\Service\ReceptionistService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -17,6 +19,7 @@ final class ReceptionistController extends AbstractController
         private readonly TokenStorageInterface $tokenStorage,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly ReceptionistService $receptionistService,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -56,5 +59,75 @@ final class ReceptionistController extends AbstractController
         $receptionists = $this->receptionistService->getReceptionistsByGarageId($garageId);
 
         return $this->json($receptionists);
+    }
+
+    #[Route('/api/receptionists', name: 'api_receptionists_create', methods: ['POST'])]
+    public function create(Request $request): JsonResponse
+    {
+        $token = $this->tokenStorage->getToken();
+        if (!$token) {
+            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $payload = $this->jwtManager->decode($token);
+        if (!$payload) {
+            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $garageId = null;
+        if (isset($payload['garage_id'])) {
+            $garageId = $payload['garage_id'];
+        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
+            $garageId = $payload['garage_ids'][0] ?? null;
+        }
+
+        if (!$garageId) {
+            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!$data) {
+            return $this->json(['error' => 'Invalid JSON'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Validate required fields
+        $requiredFields = ['lastName', 'firstName', 'birthDate', 'email', 'password'];
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                $this->logger->warning('Missing required field when creating receptionist', [
+                    'field' => $field,
+                    'garage_id' => $garageId,
+                    'provided_fields' => array_keys($data),
+                ]);
+                return $this->json(['error' => "Missing required field: $field"], JsonResponse::HTTP_BAD_REQUEST);
+            }
+        }
+
+        try {
+            $receptionist = $this->receptionistService->createReceptionist($garageId, $data);
+
+            return $this->json([
+                'id' => $receptionist->getId(),
+                'lastName' => $receptionist->getLastName(),
+                'firstName' => $receptionist->getFirstName(),
+                'birthDate' => $receptionist->getBirthDate()->format('Y-m-d'),
+                'hireDate' => $receptionist->getStartDate()?->format('Y-m-d'),
+                'email' => $receptionist->getEmail(),
+            ], JsonResponse::HTTP_CREATED);
+        } catch (\InvalidArgumentException $e) {
+            $this->logger->warning('Validation error when creating receptionist', [
+                'error' => $e->getMessage(),
+                'garage_id' => $garageId,
+                'email' => $data['email'] ?? null,
+            ]);
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error when creating receptionist', [
+                'error' => $e->getMessage(),
+                'garage_id' => $garageId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->json(['error' => 'Failed to create receptionist'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

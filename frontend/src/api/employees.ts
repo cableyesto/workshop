@@ -77,3 +77,25 @@ export async function createMechanicAPI(data: EmployeeFormData): Promise<Mechani
 
   return response.json()
 }
+
+/**
+ * API function to create a new receptionist
+ */
+export async function createReceptionistAPI(data: EmployeeFormData): Promise<Receptionist> {
+  const token = getToken()
+  const response = await fetch('/api/receptionists', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to create receptionist' }))
+    throw new Error(error.error || 'Failed to create receptionist')
+  }
+
+  return response.json()
+}
