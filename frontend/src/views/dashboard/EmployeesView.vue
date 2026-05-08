@@ -11,10 +11,12 @@ import {
   createMechanicAPI,
   createReceptionistAPI,
 } from '../../api/employees'
-import type { EmployeeFormData } from '../../types/employee'
+import type { EmployeeFormData, Mechanic, Receptionist } from '../../types/employee'
 
 const activeTab = ref<'receptionists' | 'mechanics'>('receptionists')
 const isDialogOpen = ref(false)
+const dialogMode = ref<'create' | 'edit'>('create')
+const selectedEmployee = ref<Mechanic | Receptionist | null>(null)
 
 // Convert plural tab name to singular for dialog type
 const dialogType = computed<'mechanic' | 'receptionist'>(() => {
@@ -63,18 +65,35 @@ const { mutate: createReceptionist, isLoading: isCreatingReceptionist } = useMut
 })
 
 function handleAddEmployee() {
+  dialogMode.value = 'create'
+  selectedEmployee.value = null
+  isDialogOpen.value = true
+}
+
+function handleUpdateEmployee(employee: Mechanic | Receptionist) {
+  dialogMode.value = 'edit'
+  selectedEmployee.value = employee
   isDialogOpen.value = true
 }
 
 function handleCloseDialog() {
   isDialogOpen.value = false
+  dialogMode.value = 'create'
+  selectedEmployee.value = null
 }
 
 function handleSubmit(data: EmployeeFormData) {
-  if (data.type === 'mechanic') {
-    createMechanic(data)
+  if (dialogMode.value === 'edit') {
+    // TODO: Implement update mutations
+    console.log('Update employee:', { id: selectedEmployee.value?.id, data })
+    alert('Update functionality coming soon!')
   } else {
-    createReceptionist(data)
+    // Create mode
+    if (data.type === 'mechanic') {
+      createMechanic(data)
+    } else {
+      createReceptionist(data)
+    }
   }
 }
 </script>
@@ -95,18 +114,30 @@ function handleSubmit(data: EmployeeFormData) {
 
       <TabsContent value="receptionists">
         <div v-if="isLoadingReceptionists">Chargement...</div>
-        <EmployeeTable v-else-if="receptionists" :employees="receptionists" type="receptionist" />
+        <EmployeeTable
+          v-else-if="receptionists"
+          :employees="receptionists"
+          type="receptionist"
+          @update="handleUpdateEmployee"
+        />
       </TabsContent>
 
       <TabsContent value="mechanics">
         <div v-if="isLoadingMechanics">Chargement...</div>
-        <EmployeeTable v-else-if="mechanics" :employees="mechanics" type="mechanic" />
+        <EmployeeTable
+          v-else-if="mechanics"
+          :employees="mechanics"
+          type="mechanic"
+          @update="handleUpdateEmployee"
+        />
       </TabsContent>
     </Tabs>
 
     <EmployeeDialog
       :open="isDialogOpen"
       :type="dialogType"
+      :mode="dialogMode"
+      :employee="selectedEmployee"
       @close="handleCloseDialog"
       @submit="handleSubmit"
     />

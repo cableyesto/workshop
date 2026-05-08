@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
@@ -15,11 +15,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
 import { areStringsEqual } from '../utils/validation'
-import type { EmployeeFormData } from '../types/employee'
+import type { EmployeeFormData, Mechanic, Receptionist } from '../types/employee'
 
 interface Props {
   open: boolean
   type: 'mechanic' | 'receptionist'
+  mode: 'create' | 'edit'
+  employee?: Mechanic | Receptionist | null
 }
 
 const props = defineProps<Props>()
@@ -82,22 +84,68 @@ const step2Schema = toTypedSchema(
     }),
 )
 
+const getStep1InitialValues = () => {
+  if (props.mode === 'edit' && props.employee) {
+    return {
+      lastName: props.employee.lastName,
+      firstName: props.employee.firstName,
+      birthDate: props.employee.birthDate,
+      hireDate: props.employee.hireDate || '',
+      pin: '', // PIN not returned from API, leave empty for now
+    }
+  }
+  return {
+    lastName: '',
+    firstName: '',
+    birthDate: '',
+    hireDate: '',
+    pin: '',
+  }
+}
+
 const {
   handleSubmit: handleStep1Submit,
   values: step1Values,
   errors: step1Errors,
   defineField: defineStep1Field,
   resetForm: resetStep1Form,
+  setValues: setStep1Values,
 } = useForm({
   validationSchema: step1Schema,
-  initialValues: {
-    lastName: '',
-    firstName: '',
-    birthDate: '',
-    hireDate: '',
-    pin: '',
-  },
+  initialValues: getStep1InitialValues(),
 })
+
+// Watch for employee changes to reset form
+watch(
+  () => props.employee,
+  (newEmployee) => {
+    if (newEmployee && props.mode === 'edit') {
+      setStep1Values({
+        lastName: newEmployee.lastName,
+        firstName: newEmployee.firstName,
+        birthDate: newEmployee.birthDate,
+        hireDate: newEmployee.hireDate || '',
+        pin: '',
+      })
+    }
+  },
+  { immediate: true },
+)
+
+const getStep2InitialValues = () => {
+  if (props.mode === 'edit' && props.employee && 'email' in props.employee) {
+    return {
+      email: props.employee.email,
+      password: '', // Don't pre-fill password
+      passwordConfirm: '',
+    }
+  }
+  return {
+    email: '',
+    password: '',
+    passwordConfirm: '',
+  }
+}
 
 const {
   handleSubmit: handleStep2Submit,
@@ -105,14 +153,26 @@ const {
   errors: step2Errors,
   defineField: defineStep2Field,
   resetForm: resetStep2Form,
+  setValues: setStep2Values,
 } = useForm({
   validationSchema: step2Schema,
-  initialValues: {
-    email: '',
-    password: '',
-    passwordConfirm: '',
-  },
+  initialValues: getStep2InitialValues(),
 })
+
+// Watch for employee changes to reset step 2 form (receptionist email)
+watch(
+  () => props.employee,
+  (newEmployee) => {
+    if (newEmployee && props.mode === 'edit' && 'email' in newEmployee) {
+      setStep2Values({
+        email: newEmployee.email,
+        password: '',
+        passwordConfirm: '',
+      })
+    }
+  },
+  { immediate: true },
+)
 
 // Step 1 fields
 const [lastName, lastNameAttrs] = defineStep1Field('lastName')
@@ -127,13 +187,21 @@ const [password, passwordAttrs] = defineStep2Field('password')
 const [passwordConfirm, passwordConfirmAttrs] = defineStep2Field('passwordConfirm')
 
 const dialogTitle = computed(() => {
+  const action = props.mode === 'edit' ? 'Modifier' : 'Ajouter'
+
   if (props.type === 'mechanic') {
-    return 'Ajouter un mécanicien'
+    return `${action} un mécanicien`
+  }
+  if (props.mode === 'edit') {
+    return `${action} un réceptionniste`
   }
   return step.value === 1 ? 'Ajouter un réceptionniste (1/2)' : 'Ajouter un réceptionniste (2/2)'
 })
 
 const dialogDescription = computed(() => {
+  if (props.mode === 'edit') {
+    return 'Modifiez les informations de l\'employé.'
+  }
   if (props.type === 'mechanic') {
     return 'Remplissez les informations du nouveau mécanicien.'
   }
@@ -151,6 +219,12 @@ function handleClose() {
 
 function handlePrevious() {
   step.value = 1
+}
+
+function handleDelete() {
+  // TODO: Implement delete functionality
+  console.log('Delete employee - to be implemented')
+  alert('Fonction de suppression à implémenter')
 }
 
 const onStep1Submit = handleStep1Submit((values) => {
@@ -251,11 +325,29 @@ const onStep2Submit = handleStep2Submit((values) => {
           </Field>
         </FieldGroup>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
-          <Button type="submit">
-            {{ type === 'mechanic' ? 'Ajouter' : 'Suivant' }}
-          </Button>
+        <DialogFooter class="flex justify-between">
+          <div>
+            <Button
+              v-if="mode === 'edit'"
+              type="button"
+              variant="destructive"
+              @click="handleDelete"
+            >
+              Supprimer
+            </Button>
+          </div>
+          <div class="flex gap-2">
+            <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
+            <Button type="submit">
+              {{
+                type === 'mechanic'
+                  ? mode === 'edit'
+                    ? 'Modifier'
+                    : 'Ajouter'
+                  : 'Suivant'
+              }}
+            </Button>
+          </div>
         </DialogFooter>
       </form>
 
@@ -299,10 +391,22 @@ const onStep2Submit = handleStep2Submit((values) => {
           </Field>
         </FieldGroup>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
-          <Button type="button" variant="outline" @click="handlePrevious">Précédent</Button>
-          <Button type="submit">Ajouter</Button>
+        <DialogFooter class="flex justify-between">
+          <div>
+            <Button
+              v-if="mode === 'edit'"
+              type="button"
+              variant="destructive"
+              @click="handleDelete"
+            >
+              Supprimer
+            </Button>
+          </div>
+          <div class="flex gap-2">
+            <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
+            <Button type="button" variant="outline" @click="handlePrevious">Précédent</Button>
+            <Button type="submit">{{ mode === 'edit' ? 'Modifier' : 'Ajouter' }}</Button>
+          </div>
         </DialogFooter>
       </form>
     </DialogContent>

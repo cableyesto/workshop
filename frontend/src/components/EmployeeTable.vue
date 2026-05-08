@@ -17,9 +17,12 @@ interface Props {
 
 defineProps<Props>()
 
-function handleUpdate(id: number) {
-  // TODO: Open modal to update employee
-  console.log('Update employee', id)
+const emit = defineEmits<{
+  update: [employee: Mechanic | Receptionist]
+}>()
+
+function handleUpdate(employee: Mechanic | Receptionist) {
+  emit('update', employee)
 }
 </script>
 
@@ -42,7 +45,7 @@ function handleUpdate(id: number) {
         <TableCell>{{ formatDate(employee.hireDate) }}</TableCell>
         <TableCell>
           <button
-            @click="handleUpdate(employee.id)"
+            @click="handleUpdate(employee)"
             class="text-blue-600 hover:underline focus:outline-none"
           >
             Actualiser
