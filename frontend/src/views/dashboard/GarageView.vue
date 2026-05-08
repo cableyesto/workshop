@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useGarageQuery } from '@/api/garage'
+import { getTokenPayload } from '@/utils/auth'
 import type { TimeSlot } from '@/types'
 
-const token = localStorage.getItem('jwt_token')
-const tokenPart = token?.split('.')[1]
-const payload = tokenPart ? JSON.parse(atob(tokenPart)) : null
-const garageId = payload?.garage_id
+const payload = getTokenPayload()
+const garageId = payload?.garage_id ?? 0
 
 const { data: garage, isLoading, error } = useGarageQuery(garageId)
 

@@ -4,13 +4,13 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 </script>
 
 <template>
-  <SidebarProvider>
+  <SidebarProvider :default-open="false">
     <AppSidebar />
     <SidebarInset>
-      <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <header class="flex h-10 shrink-0 items-center gap-2 border-b px-4">
         <SidebarTrigger class="-ml-1" />
         <div class="flex items-center gap-2">
-          <h1 class="text-xl font-semibold">Tableau de bord réception</h1>
+          <h1 class="text-sm font-extralight">Tableau de bord réception</h1>
         </div>
       </header>
       <main class="flex flex-1 flex-col gap-4 p-4">

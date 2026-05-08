@@ -11,7 +11,7 @@ export interface LoginReceptionistRequest {
 
 export interface LoginResponse {
   token: string
-  refresh_token: string
+  // refresh_token is in HttpOnly cookie, not in response body
 }
 
 export interface User {
@@ -21,4 +21,14 @@ export interface User {
   garage_id?: number
   garage_siret?: string
   garage_slug?: string
+}
+
+export interface JWTPayload {
+  exp: number
+  iat: number
+  roles: string[]
+  username: string
+  garage_id?: number // For receptionist
+  garage_ids?: number[] // For owner
+  garage_siret?: string // For receptionist
 }

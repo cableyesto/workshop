@@ -14,11 +14,10 @@ async function handleLogin(credentials: LoginOwnerRequest) {
   error.value = null
 
   try {
-    const { token, refresh_token } = await loginOwner(credentials)
+    const { token } = await loginOwner(credentials)
 
-    // Store tokens in localStorage
+    // Store JWT in localStorage (refresh token is HttpOnly cookie)
     localStorage.setItem('jwt_token', token)
-    localStorage.setItem('refresh_token', refresh_token)
 
     // Redirect to owner dashboard
     await router.push('/owner/dashboard')

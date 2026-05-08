@@ -9,13 +9,9 @@ use App\Entity\Receptionist;
 use App\Repository\GarageRepository;
 use App\Repository\OwnerRepository;
 use App\Repository\ReceptionistRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
-use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -33,12 +29,7 @@ final class LoginController extends AbstractController
         private readonly GarageRepository $garageRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly JWTTokenManagerInterface $jwtManager,
-        private readonly RefreshTokenGeneratorInterface $refreshTokenGenerator,
-        private readonly RefreshTokenManagerInterface $refreshTokenManager,
-        private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $securityLogger,
-        private readonly int $refreshTokenTtl,
-        private readonly array $cookieConfig,
     ) {
     }
 
@@ -102,53 +93,13 @@ final class LoginController extends AbstractController
             // Multi-garage access - no garage context needed
         }
 
-        // Generate JWT access token
+        // Generate JWT access token (8 hours)
         $token = $this->jwtManager->create($user);
 
-        // Revoke all existing refresh tokens for this user
-        // This prevents database bloat and ensures only one active session
-        $this->revokeExistingTokens($user->getUserIdentifier());
-
-        // Generate new refresh token
-        $refreshToken = $this->refreshTokenGenerator->createForUserWithTtl(
-            $user,
-            $this->refreshTokenTtl
-        );
-        $this->refreshTokenManager->save($refreshToken);
-
-        // Create response with access token
-        $response = $this->json([
+        // Return access token
+        return $this->json([
             'token' => $token,
-            'refresh_token' => $refreshToken->getRefreshToken(),
         ]);
-
-        // Set refresh token as HttpOnly cookie (using config from gesdinet_jwt_refresh_token.yaml)
-        $cookie = Cookie::create('refresh_token')
-            ->withValue($refreshToken->getRefreshToken())
-            ->withExpires(new \DateTime(sprintf('+%d seconds', $this->refreshTokenTtl)))
-            ->withPath($this->cookieConfig['path'] ?? '/')
-            ->withDomain($this->cookieConfig['domain'])
-            ->withSecure($this->cookieConfig['secure'] ?? false)
-            ->withHttpOnly($this->cookieConfig['http_only'] ?? true)
-            ->withSameSite($this->cookieConfig['same_site'] ?? Cookie::SAMESITE_LAX);
-
-        $response->headers->setCookie($cookie);
-
-        return $response;
     }
 
-    /**
-     * Revoke all existing refresh tokens for a user.
-     * This ensures only one active session per user and prevents database bloat.
-     */
-    private function revokeExistingTokens(string $username): void
-    {
-        $connection = $this->entityManager->getConnection();
-
-        // Delete all refresh tokens for this user
-        $connection->executeStatement(
-            'DELETE FROM refresh_tokens WHERE username = :username',
-            ['username' => $username]
-        );
-    }
 }

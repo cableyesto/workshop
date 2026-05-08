@@ -27,11 +27,10 @@ async function handleLogin(credentials: { email: string; password: string; siret
       password: credentials.password,
     }
 
-    const { token, refresh_token } = await loginReceptionist(receptionistCredentials)
+    const { token } = await loginReceptionist(receptionistCredentials)
 
-    // Store tokens in localStorage
+    // Store JWT in localStorage (refresh token is HttpOnly cookie)
     localStorage.setItem('jwt_token', token)
-    localStorage.setItem('refresh_token', refresh_token)
 
     // Redirect to receptionist dashboard
     await router.push('/receptionist/dashboard')

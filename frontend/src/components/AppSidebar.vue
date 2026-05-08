@@ -39,7 +39,7 @@ const data = {
     },
     {
       name: 'Configuration',
-      url: '/receptionist/dashboard/configuration',
+      url: '/receptionist/dashboard/settings',
       icon: Settings,
     },
   ],

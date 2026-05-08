@@ -8,9 +8,10 @@ export function useGarageQuery(id: number) {
   return useQuery({
     key: ['garage', id],
     query: async (): Promise<Garage> => {
+      const token = localStorage.getItem('jwt_token')
       const response = await fetch(`/api/garages/${id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       })

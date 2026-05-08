@@ -38,14 +38,19 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
 
+        # Public health check endpoints (for monitoring - Uptime Kuma, etc.)
+        health:
+            pattern: ^/api/health
+            stateless: true
+            security: false
+
         # Protected API routes (require JWT authentication)
         api:
             pattern: ^/api
             stateless: true
             provider: all_users
+#            entry_point: jwt
             jwt: ~
-            logout:
-                path: /api/logout
 #        main:
 #            custom_authenticators:
 #                - App\Security\MechanicPinAuthenticator
@@ -62,7 +67,6 @@ security:
         # Public endpoints
         - { path: ^/api/login$, roles: PUBLIC_ACCESS }
         - { path: ^/api/garage/[^/]+/mechanic/login$, roles: PUBLIC_ACCESS }
-        - { path: ^/api/token/refresh$, roles: PUBLIC_ACCESS }
         - { path: ^/api/health, roles: PUBLIC_ACCESS }
 
         # Protected API endpoints (require JWT authentication)
@@ -89,7 +93,6 @@ when@prod:
             # Public endpoints
             - { path: ^/api/login$, roles: PUBLIC_ACCESS }
             - { path: ^/api/garage/[^/]+/mechanic/login$, roles: PUBLIC_ACCESS }
-            - { path: ^/api/token/refresh$, roles: PUBLIC_ACCESS }
             - { path: ^/api/health, roles: PUBLIC_ACCESS, ips: [127.0.0.1, '::1'] }  # Production: localhost only
 
             # Protected API endpoints (require JWT authentication)
