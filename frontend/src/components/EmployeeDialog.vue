@@ -165,7 +165,7 @@ const onStep1Submit = handleStep1Submit((values) => {
       pin: values.pin,
     }
     emit('submit', data)
-    handleClose()
+    // Don't close here - let parent handle it based on mutation result
   } else {
     // Receptionist: go to step 2
     step.value = 2
@@ -184,7 +184,7 @@ const onStep2Submit = handleStep2Submit((values) => {
     password: values.password,
   }
   emit('submit', data)
-  handleClose()
+  // Don't close here - let parent handle it based on mutation result
 })
 </script>
 

@@ -26,11 +26,17 @@ const { data: receptionists, isLoading: isLoadingReceptionists } = useReceptioni
 const { mutate: createMechanic, isLoading: isCreatingMechanic } = useMutation({
   key: ['create-mechanic'],
   mutation: createMechanicAPI,
-  onSettled: () => {
+  onSuccess: () => {
+    isDialogOpen.value = false
     queryCache.invalidateQueries({
       key: ['mechanics'],
       exact: true,
     })
+  },
+  onError: (error) => {
+    console.error('Error creating mechanic:', error)
+    //TODO improve error displayed
+    alert(`Erreur: ${error.message}`)
   },
 })
 
@@ -57,11 +63,16 @@ const {
 
     return response.json()
   },
-  onSettled: () => {
+  onSuccess: () => {
+    isDialogOpen.value = false
     queryCache.invalidateQueries({
       key: ['receptionists'],
       exact: true,
     })
+  },
+  onError: (error) => {
+    console.error('Error creating receptionist:', error)
+    alert(`Erreur: ${error.message}`)
   },
 })
 
