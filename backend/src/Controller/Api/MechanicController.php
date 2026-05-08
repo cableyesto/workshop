@@ -129,4 +129,92 @@ final class MechanicController extends AbstractController
             return $this->json(['error' => 'Failed to create mechanic'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    #[Route('/api/mechanics/{id}', name: 'api_mechanics_update', methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        $token = $this->tokenStorage->getToken();
+        if (!$token) {
+            $this->logger->warning('Update mechanic failed: authentication required', [
+                'mechanic_id' => $id,
+            ]);
+            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $payload = $this->jwtManager->decode($token);
+        if (!$payload) {
+            $this->logger->warning('Update mechanic failed: invalid token', [
+                'mechanic_id' => $id,
+            ]);
+            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $garageId = null;
+        if (isset($payload['garage_id'])) {
+            $garageId = $payload['garage_id'];
+        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
+            $garageId = $payload['garage_ids'][0] ?? null;
+        }
+
+        if (!$garageId) {
+            $this->logger->warning('Update mechanic failed: no garage context in token', [
+                'mechanic_id' => $id,
+                'payload' => $payload,
+            ]);
+            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if ($data === null) {
+            $this->logger->warning('Update mechanic failed: invalid JSON', [
+                'mechanic_id' => $id,
+                'garage_id' => $garageId,
+                'raw_content' => $request->getContent(),
+            ]);
+            return $this->json(['error' => 'Invalid JSON'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $mechanic = $this->mechanicService->updateMechanic($id, $garageId, $data);
+
+            $this->logger->info('Mechanic updated successfully', [
+                'mechanic_id' => $mechanic->getId(),
+                'garage_id' => $garageId,
+                'updated_fields' => array_keys($data),
+            ]);
+
+            return $this->json([
+                'id' => $mechanic->getId(),
+                'lastName' => $mechanic->getLastName(),
+                'firstName' => $mechanic->getFirstName(),
+                'birthDate' => $mechanic->getBirthDate()->format('Y-m-d'),
+                'hireDate' => $mechanic->getStartDate()?->format('Y-m-d'),
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            // Handle specific validation errors (not found, unauthorized, validation failed)
+            $statusCode = match (true) {
+                str_contains($e->getMessage(), 'not found') => JsonResponse::HTTP_NOT_FOUND,
+                str_contains($e->getMessage(), 'Unauthorized') => JsonResponse::HTTP_FORBIDDEN,
+                default => JsonResponse::HTTP_BAD_REQUEST,
+            };
+
+            $this->logger->warning('Validation error when updating mechanic', [
+                'error' => $e->getMessage(),
+                'mechanic_id' => $id,
+                'garage_id' => $garageId,
+                'provided_fields' => array_keys($data),
+                'status_code' => $statusCode,
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], $statusCode);
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error when updating mechanic', [
+                'error' => $e->getMessage(),
+                'mechanic_id' => $id,
+                'garage_id' => $garageId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->json(['error' => 'Failed to update mechanic'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

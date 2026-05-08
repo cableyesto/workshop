@@ -126,4 +126,82 @@ final class MechanicService
 
         return $mechanic;
     }
+
+    /**
+     * Update an existing mechanic
+     *
+     * @param array{lastName?: string, firstName?: string, birthDate?: string, hireDate?: string, pin?: string} $data
+     * @throws \InvalidArgumentException
+     */
+    public function updateMechanic(int $mechanicId, int $garageId, array $data): Mechanic
+    {
+        $mechanic = $this->mechanicRepository->find($mechanicId);
+        if (!$mechanic) {
+            throw new \InvalidArgumentException('Mechanic not found');
+        }
+
+        // Verify mechanic belongs to the requesting user's garage
+        $belongsToGarage = false;
+        foreach ($mechanic->getGarages() as $garage) {
+            if ($garage->getId() === $garageId) {
+                $belongsToGarage = true;
+                break;
+            }
+        }
+
+        if (!$belongsToGarage) {
+            throw new \InvalidArgumentException('Unauthorized: mechanic does not belong to your garage');
+        }
+
+        // Update personal information
+        if (isset($data['lastName'])) {
+            $mechanic->setLastName($data['lastName']);
+        }
+
+        if (isset($data['firstName'])) {
+            $mechanic->setFirstName($data['firstName']);
+        }
+
+        if (isset($data['birthDate'])) {
+            $birthDate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['birthDate']);
+            if ($birthDate === false) {
+                throw new \InvalidArgumentException('Invalid birthDate format. Expected Y-m-d');
+            }
+            $mechanic->setBirthDate($birthDate);
+        }
+
+        // Update hireDate - null means no change, empty string means clear it
+        if (isset($data['hireDate'])) {
+            if (!empty($data['hireDate'])) {
+                $hireDate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['hireDate']);
+                if ($hireDate === false) {
+                    throw new \InvalidArgumentException('Invalid hireDate format. Expected Y-m-d');
+                }
+                $mechanic->setStartDate($hireDate);
+            } else {
+                $mechanic->setStartDate(null);
+            }
+        }
+
+        // Update PIN if provided (optional in edit mode)
+        if (isset($data['pin']) && !empty($data['pin'])) {
+            // Validate PIN uniqueness (exclude current mechanic)
+            $this->validatePinUniqueness($data['pin'], $garageId, $mechanicId);
+            $mechanic->setPin($data['pin']);
+        }
+
+        // Validate entity
+        $errors = $this->validator->validate($mechanic);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+            throw new \InvalidArgumentException('Validation failed: ' . implode(', ', $errorMessages));
+        }
+
+        $this->entityManager->flush();
+
+        return $mechanic;
+    }
 }

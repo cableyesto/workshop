@@ -32,6 +32,39 @@ const emit = defineEmits<{
 }>()
 
 const step = ref(1)
+const hasAttemptedSubmit = ref(false)
+
+// Watch dialog open/close and reset forms appropriately
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      hasAttemptedSubmit.value = false
+      // Dialog is opening - set or reset forms based on mode
+      if (props.mode === 'edit' && props.employee) {
+        // Edit mode: pre-fill form
+        setStep1Values({
+          lastName: props.employee.lastName,
+          firstName: props.employee.firstName,
+          birthDate: props.employee.birthDate,
+          hireDate: props.employee.hireDate || '',
+          pin: '',
+        })
+        if ('email' in props.employee) {
+          setStep2Values({
+            email: props.employee.email,
+            password: '',
+            passwordConfirm: '',
+          })
+        }
+      } else {
+        // Create mode: reset to empty
+        resetStep1Form()
+        resetStep2Form()
+      }
+    }
+  },
+)
 
 // Step 1 validation schema
 const step1Schema = toTypedSchema(
@@ -120,27 +153,12 @@ const {
   defineField: defineStep1Field,
   resetForm: resetStep1Form,
   setValues: setStep1Values,
+  setErrors: setStep1Errors,
 } = useForm({
   validationSchema: step1Schema,
   initialValues: getStep1InitialValues(),
+  validateOnMount: false,
 })
-
-// Watch for employee changes to reset form
-watch(
-  () => props.employee,
-  (newEmployee) => {
-    if (newEmployee && props.mode === 'edit') {
-      setStep1Values({
-        lastName: newEmployee.lastName,
-        firstName: newEmployee.firstName,
-        birthDate: newEmployee.birthDate,
-        hireDate: newEmployee.hireDate || '',
-        pin: '',
-      })
-    }
-  },
-  { immediate: true },
-)
 
 const getStep2InitialValues = () => {
   if (props.mode === 'edit' && props.employee && 'email' in props.employee) {
@@ -164,25 +182,12 @@ const {
   defineField: defineStep2Field,
   resetForm: resetStep2Form,
   setValues: setStep2Values,
+  setErrors: setStep2Errors,
 } = useForm({
   validationSchema: step2Schema,
   initialValues: getStep2InitialValues(),
+  validateOnMount: false,
 })
-
-// Watch for employee changes to reset step 2 form (receptionist email)
-watch(
-  () => props.employee,
-  (newEmployee) => {
-    if (newEmployee && props.mode === 'edit' && 'email' in newEmployee) {
-      setStep2Values({
-        email: newEmployee.email,
-        password: '',
-        passwordConfirm: '',
-      })
-    }
-  },
-  { immediate: true },
-)
 
 // Step 1 fields
 const [lastName, lastNameAttrs] = defineStep1Field('lastName')
@@ -210,7 +215,7 @@ const dialogTitle = computed(() => {
 
 const dialogDescription = computed(() => {
   if (props.mode === 'edit') {
-    return 'Modifiez les informations de l\'employé.'
+    return "Modifiez les informations de l'employé."
   }
   if (props.type === 'mechanic') {
     return 'Remplissez les informations du nouveau mécanicien.'
@@ -222,8 +227,6 @@ const dialogDescription = computed(() => {
 
 function handleClose() {
   step.value = 1
-  resetStep1Form()
-  resetStep2Form()
   emit('close')
 }
 
@@ -237,39 +240,51 @@ function handleDelete() {
   alert('Fonction de suppression à implémenter')
 }
 
-const onStep1Submit = handleStep1Submit((values) => {
-  if (props.type === 'mechanic') {
-    // Submit mechanic form
+const onStep1Submit = handleStep1Submit(
+  (values) => {
+    if (props.type === 'mechanic') {
+      // Submit mechanic form
+      const data: EmployeeFormData = {
+        type: 'mechanic',
+        lastName: values.lastName,
+        firstName: values.firstName,
+        birthDate: values.birthDate,
+        hireDate: values.hireDate,
+        pin: values.pin,
+      }
+      emit('submit', data)
+      // Don't close here - let parent handle it based on mutation result
+    } else {
+      // Receptionist: go to step 2
+      step.value = 2
+    }
+  },
+  () => {
+    // On validation error
+    hasAttemptedSubmit.value = true
+  },
+)
+
+const onStep2Submit = handleStep2Submit(
+  (values) => {
+    // Submit receptionist form with both steps data
     const data: EmployeeFormData = {
-      type: 'mechanic',
-      lastName: values.lastName,
-      firstName: values.firstName,
-      birthDate: values.birthDate,
-      hireDate: values.hireDate,
-      pin: values.pin,
+      type: 'receptionist',
+      lastName: step1Values.lastName!,
+      firstName: step1Values.firstName!,
+      birthDate: step1Values.birthDate!,
+      hireDate: step1Values.hireDate,
+      email: values.email,
+      password: values.password,
     }
     emit('submit', data)
     // Don't close here - let parent handle it based on mutation result
-  } else {
-    // Receptionist: go to step 2
-    step.value = 2
-  }
-})
-
-const onStep2Submit = handleStep2Submit((values) => {
-  // Submit receptionist form with both steps data
-  const data: EmployeeFormData = {
-    type: 'receptionist',
-    lastName: step1Values.lastName!,
-    firstName: step1Values.firstName!,
-    birthDate: step1Values.birthDate!,
-    hireDate: step1Values.hireDate,
-    email: values.email,
-    password: values.password,
-  }
-  emit('submit', data)
-  // Don't close here - let parent handle it based on mutation result
-})
+  },
+  () => {
+    // On validation error
+    hasAttemptedSubmit.value = true
+  },
+)
 </script>
 
 <template>
@@ -287,7 +302,9 @@ const onStep2Submit = handleStep2Submit((values) => {
           <FieldLabel for="lastName">Nom</FieldLabel>
           <Field>
             <Input id="lastName" v-model="lastName" v-bind="lastNameAttrs" type="text" />
-            <FieldError v-if="step1Errors.lastName">{{ step1Errors.lastName }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.lastName">{{
+              step1Errors.lastName
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -296,7 +313,9 @@ const onStep2Submit = handleStep2Submit((values) => {
           <FieldLabel for="firstName">Prénom</FieldLabel>
           <Field>
             <Input id="firstName" v-model="firstName" v-bind="firstNameAttrs" type="text" />
-            <FieldError v-if="step1Errors.firstName">{{ step1Errors.firstName }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.firstName">{{
+              step1Errors.firstName
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -305,7 +324,9 @@ const onStep2Submit = handleStep2Submit((values) => {
           <FieldLabel for="birthDate">Date de naissance</FieldLabel>
           <Field>
             <Input id="birthDate" v-model="birthDate" v-bind="birthDateAttrs" type="date" />
-            <FieldError v-if="step1Errors.birthDate">{{ step1Errors.birthDate }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.birthDate">{{
+              step1Errors.birthDate
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -314,7 +335,9 @@ const onStep2Submit = handleStep2Submit((values) => {
           <FieldLabel for="hireDate">Date de démarrage (optionnel)</FieldLabel>
           <Field>
             <Input id="hireDate" v-model="hireDate" v-bind="hireDateAttrs" type="date" />
-            <FieldError v-if="step1Errors.hireDate">{{ step1Errors.hireDate }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.hireDate">{{
+              step1Errors.hireDate
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -331,7 +354,9 @@ const onStep2Submit = handleStep2Submit((values) => {
               inputmode="numeric"
               placeholder="0000"
             />
-            <FieldError v-if="step1Errors.pin">{{ step1Errors.pin }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.pin">{{
+              step1Errors.pin
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -349,13 +374,7 @@ const onStep2Submit = handleStep2Submit((values) => {
           <div class="flex gap-2">
             <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
             <Button type="submit">
-              {{
-                type === 'mechanic'
-                  ? mode === 'edit'
-                    ? 'Modifier'
-                    : 'Ajouter'
-                  : 'Suivant'
-              }}
+              {{ type === 'mechanic' ? (mode === 'edit' ? 'Modifier' : 'Ajouter') : 'Suivant' }}
             </Button>
           </div>
         </DialogFooter>
@@ -372,7 +391,9 @@ const onStep2Submit = handleStep2Submit((values) => {
           <FieldLabel for="email">Email</FieldLabel>
           <Field>
             <Input id="email" v-model="email" v-bind="emailAttrs" type="email" />
-            <FieldError v-if="step2Errors.email">{{ step2Errors.email }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step2Errors.email">{{
+              step2Errors.email
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -381,7 +402,9 @@ const onStep2Submit = handleStep2Submit((values) => {
           <FieldLabel for="password">Mot de passe</FieldLabel>
           <Field>
             <Input id="password" v-model="password" v-bind="passwordAttrs" type="password" />
-            <FieldError v-if="step2Errors.password">{{ step2Errors.password }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step2Errors.password">{{
+              step2Errors.password
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -395,7 +418,7 @@ const onStep2Submit = handleStep2Submit((values) => {
               v-bind="passwordConfirmAttrs"
               type="password"
             />
-            <FieldError v-if="step2Errors.passwordConfirm">{{
+            <FieldError v-if="hasAttemptedSubmit && step2Errors.passwordConfirm">{{
               step2Errors.passwordConfirm
             }}</FieldError>
           </Field>
