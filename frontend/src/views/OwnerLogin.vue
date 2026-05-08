@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginOwner } from '@/api/login'
+import { setToken } from '@/utils/auth'
 import type { LoginOwnerRequest } from '@/types/auth'
 import LoginForm from '@/components/LoginForm.vue'
 
@@ -16,8 +17,8 @@ async function handleLogin(credentials: LoginOwnerRequest) {
   try {
     const { token } = await loginOwner(credentials)
 
-    // Store JWT in localStorage (refresh token is HttpOnly cookie)
-    localStorage.setItem('jwt_token', token)
+    // Store JWT in localStorage
+    setToken(token)
 
     // Redirect to owner dashboard
     await router.push('/owner/dashboard')

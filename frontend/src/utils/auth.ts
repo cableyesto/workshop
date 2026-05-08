@@ -2,10 +2,24 @@ import { jwtDecode } from 'jwt-decode'
 import type { JWTPayload } from '@/types/auth'
 
 /**
- * Get JWT token from localStorage (internal helper)
+ * Get JWT token from localStorage
  */
-function getToken(): string | null {
+export function getToken(): string | null {
   return localStorage.getItem('jwt_token')
+}
+
+/**
+ * Set JWT token in localStorage
+ */
+export function setToken(token: string): void {
+  localStorage.setItem('jwt_token', token)
+}
+
+/**
+ * Clear JWT token from localStorage
+ */
+export function clearToken(): void {
+  localStorage.removeItem('jwt_token')
 }
 
 /**

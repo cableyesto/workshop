@@ -1,4 +1,5 @@
 import { useQuery } from '@pinia/colada'
+import { getToken } from '../utils/auth'
 import type { Garage } from '@/types'
 
 /**
@@ -8,7 +9,7 @@ export function useGarageQuery(id: number) {
   return useQuery({
     key: ['garage', id],
     query: async (): Promise<Garage> => {
-      const token = localStorage.getItem('jwt_token')
+      const token = getToken()
       const response = await fetch(`/api/garages/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,

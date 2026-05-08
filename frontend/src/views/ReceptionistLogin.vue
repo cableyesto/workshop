@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { loginReceptionist } from '@/api/login'
+import { setToken } from '@/utils/auth'
 import type { LoginReceptionistRequest } from '@/types/auth'
 import LoginForm from '@/components/LoginForm.vue'
 
@@ -29,8 +30,8 @@ async function handleLogin(credentials: { email: string; password: string; siret
 
     const { token } = await loginReceptionist(receptionistCredentials)
 
-    // Store JWT in localStorage (refresh token is HttpOnly cookie)
-    localStorage.setItem('jwt_token', token)
+    // Store JWT in localStorage
+    setToken(token)
 
     // Redirect to receptionist dashboard
     await router.push('/receptionist/dashboard')
