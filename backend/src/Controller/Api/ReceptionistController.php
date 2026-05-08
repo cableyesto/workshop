@@ -130,4 +130,92 @@ final class ReceptionistController extends AbstractController
             return $this->json(['error' => 'Failed to create receptionist'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    #[Route('/api/receptionists/{id}', name: 'api_receptionists_update', methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        $token = $this->tokenStorage->getToken();
+        if (!$token) {
+            $this->logger->warning('Update receptionist failed: authentication required', [
+                'receptionist_id' => $id,
+            ]);
+            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $payload = $this->jwtManager->decode($token);
+        if (!$payload) {
+            $this->logger->warning('Update receptionist failed: invalid token', [
+                'receptionist_id' => $id,
+            ]);
+            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $garageId = null;
+        if (isset($payload['garage_id'])) {
+            $garageId = $payload['garage_id'];
+        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
+            $garageId = $payload['garage_ids'][0] ?? null;
+        }
+
+        if (!$garageId) {
+            $this->logger->warning('Update receptionist failed: no garage context in token', [
+                'receptionist_id' => $id,
+                'payload' => $payload,
+            ]);
+            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if ($data === null) {
+            $this->logger->warning('Update receptionist failed: invalid JSON', [
+                'receptionist_id' => $id,
+                'garage_id' => $garageId,
+                'raw_content' => $request->getContent(),
+            ]);
+            return $this->json(['error' => 'Invalid JSON'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $receptionist = $this->receptionistService->updateReceptionist($id, $garageId, $data);
+
+            $this->logger->info('Receptionist updated successfully', [
+                'receptionist_id' => $receptionist->getId(),
+                'garage_id' => $garageId,
+                'updated_fields' => array_keys($data),
+            ]);
+
+            return $this->json([
+                'id' => $receptionist->getId(),
+                'lastName' => $receptionist->getLastName(),
+                'firstName' => $receptionist->getFirstName(),
+                'birthDate' => $receptionist->getBirthDate()->format('Y-m-d'),
+                'hireDate' => $receptionist->getStartDate()?->format('Y-m-d'),
+                'email' => $receptionist->getEmail(),
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            $statusCode = match (true) {
+                str_contains($e->getMessage(), 'not found') => JsonResponse::HTTP_NOT_FOUND,
+                str_contains($e->getMessage(), 'Unauthorized') => JsonResponse::HTTP_FORBIDDEN,
+                default => JsonResponse::HTTP_BAD_REQUEST,
+            };
+
+            $this->logger->warning('Validation error when updating receptionist', [
+                'error' => $e->getMessage(),
+                'receptionist_id' => $id,
+                'garage_id' => $garageId,
+                'provided_fields' => array_keys($data),
+                'status_code' => $statusCode,
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], $statusCode);
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error when updating receptionist', [
+                'error' => $e->getMessage(),
+                'receptionist_id' => $id,
+                'garage_id' => $garageId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->json(['error' => 'Failed to update receptionist'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
