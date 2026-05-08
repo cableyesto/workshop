@@ -13,7 +13,7 @@
   ],
   // shadcn ui configuration
   "compilerOptions": {
-    "baseUrl": ".",
+    //"baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
