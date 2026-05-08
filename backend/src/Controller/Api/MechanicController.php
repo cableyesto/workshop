@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\Service\MechanicService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +19,7 @@ final class MechanicController extends AbstractController
         private readonly TokenStorageInterface $tokenStorage,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly MechanicService $mechanicService,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -92,6 +94,11 @@ final class MechanicController extends AbstractController
         $requiredFields = ['lastName', 'firstName', 'birthDate', 'pin'];
         foreach ($requiredFields as $field) {
             if (empty($data[$field])) {
+                $this->logger->warning('Missing required field when creating mechanic', [
+                    'field' => $field,
+                    'garage_id' => $garageId,
+                    'provided_fields' => array_keys($data),
+                ]);
                 return $this->json(['error' => "Missing required field: $field"], JsonResponse::HTTP_BAD_REQUEST);
             }
         }
@@ -107,8 +114,18 @@ final class MechanicController extends AbstractController
                 'hireDate' => $mechanic->getStartDate()?->format('Y-m-d'),
             ], JsonResponse::HTTP_CREATED);
         } catch (\InvalidArgumentException $e) {
+            $this->logger->warning('Validation error when creating mechanic', [
+                'error' => $e->getMessage(),
+                'garage_id' => $garageId,
+                'pin' => $data['pin'] ?? null,
+            ]);
             return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         } catch (\Exception $e) {
+            $this->logger->error('Unexpected error when creating mechanic', [
+                'error' => $e->getMessage(),
+                'garage_id' => $garageId,
+                'trace' => $e->getTraceAsString(),
+            ]);
             return $this->json(['error' => 'Failed to create mechanic'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
