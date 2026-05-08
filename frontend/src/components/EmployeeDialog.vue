@@ -113,19 +113,74 @@ const step2Schema = toTypedSchema(
   z
     .object({
       email: z.string().email('Adresse email invalide').min(1, 'Email requis'),
-      password: z
-        .string()
-        .min(1, 'Mot de passe requis')
-        .max(50, 'Le mot de passe ne peut pas dépasser 50 caractères'),
-      passwordConfirm: z
-        .string()
-        .min(1, 'Confirmation requise')
-        .max(50, 'Le mot de passe ne peut pas dépasser 50 caractères'),
+      password: z.string().optional(),
+      passwordConfirm: z.string().optional(),
     })
-    .refine((data) => areStringsEqual(data.password, data.passwordConfirm), {
-      message: 'Les mots de passe ne correspondent pas',
-      path: ['passwordConfirm'],
-    }),
+    .refine(
+      (data) => {
+        // Create mode: password required
+        if (props.mode === 'create') {
+          return (
+            data.password &&
+            data.password.length > 0 &&
+            data.password.length <= 50
+          )
+        }
+        // Edit mode: password optional, but if provided must be valid
+        if (props.mode === 'edit') {
+          if (!data.password || data.password.length === 0) {
+            return true // Empty is OK in edit mode
+          }
+          return data.password.length <= 50
+        }
+        return true
+      },
+      {
+        message: 'Mot de passe requis (max 50 caractères)',
+        path: ['password'],
+      },
+    )
+    .refine(
+      (data) => {
+        // Create mode: passwordConfirm required
+        if (props.mode === 'create') {
+          return (
+            data.passwordConfirm &&
+            data.passwordConfirm.length > 0 &&
+            data.passwordConfirm.length <= 50
+          )
+        }
+        // Edit mode: passwordConfirm optional, but if password is provided, confirm is required
+        if (props.mode === 'edit') {
+          if (!data.password || data.password.length === 0) {
+            return true // No confirm needed if no password
+          }
+          return (
+            data.passwordConfirm &&
+            data.passwordConfirm.length > 0 &&
+            data.passwordConfirm.length <= 50
+          )
+        }
+        return true
+      },
+      {
+        message: 'Confirmation requise (max 50 caractères)',
+        path: ['passwordConfirm'],
+      },
+    )
+    .refine(
+      (data) => {
+        // Only check match if password is provided
+        if (!data.password || data.password.length === 0) {
+          return true
+        }
+        return areStringsEqual(data.password, data.passwordConfirm || '')
+      },
+      {
+        message: 'Les mots de passe ne correspondent pas',
+        path: ['passwordConfirm'],
+      },
+    ),
 )
 
 const getStep1InitialValues = () => {

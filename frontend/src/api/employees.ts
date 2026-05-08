@@ -127,6 +127,80 @@ export async function createReceptionistAPI(data: EmployeeFormData): Promise<Rec
 }
 
 /**
+ * API function to update a receptionist
+ */
+export async function updateReceptionistAPI(
+  id: number,
+  data: Partial<EmployeeFormData>,
+): Promise<Receptionist> {
+  const token = getToken()
+  const response = await fetch(`/api/receptionists/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Failed to update receptionist' }))
+    throw new Error(error.error || 'Failed to update receptionist')
+  }
+
+  return response.json()
+}
+
+/**
+ * Mutation hook to create a receptionist
+ */
+export function useCreateReceptionistMutation(dialogOpen: Ref<boolean>) {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    key: ['create-receptionist'],
+    mutation: createReceptionistAPI,
+    onSuccess: () => {
+      dialogOpen.value = false
+      queryCache.invalidateQueries({
+        key: ['receptionists'],
+        exact: true,
+      })
+    },
+    onError: (error) => {
+      console.error('Error creating receptionist:', error)
+      alert(`Erreur: ${error.message}`)
+    },
+  })
+}
+
+/**
+ * Mutation hook to update a receptionist
+ */
+export function useUpdateReceptionistMutation(dialogOpen: Ref<boolean>) {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    key: ['update-receptionist'],
+    mutation: ({ id, data }: { id: number; data: Partial<EmployeeFormData> }) =>
+      updateReceptionistAPI(id, data),
+    onSuccess: () => {
+      dialogOpen.value = false
+      queryCache.invalidateQueries({
+        key: ['receptionists'],
+        exact: true,
+      })
+    },
+    onError: (error) => {
+      console.error('Error updating receptionist:', error)
+      alert(`Erreur: ${error.message}`)
+    },
+  })
+}
+
+/**
  * Mutation hook to create a mechanic
  */
 export function useCreateMechanicMutation(dialogOpen: Ref<boolean>) {

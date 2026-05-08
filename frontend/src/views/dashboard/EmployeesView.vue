@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useMutation, useQueryCache } from '@pinia/colada'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import EmployeeTable from '../../components/EmployeeTable.vue'
@@ -11,7 +10,8 @@ import {
   useCreateMechanicMutation,
   useUpdateMechanicMutation,
   useDeleteMechanicMutation,
-  createReceptionistAPI,
+  useCreateReceptionistMutation,
+  useUpdateReceptionistMutation,
 } from '../../api/employees'
 import type { EmployeeFormData, Mechanic, Receptionist } from '../../types/employee'
 
@@ -25,36 +25,17 @@ const dialogType = computed<'mechanic' | 'receptionist'>(() => {
   return activeTab.value === 'mechanics' ? 'mechanic' : 'receptionist'
 })
 
-const queryCache = useQueryCache()
-
 const { data: mechanics, isLoading: isLoadingMechanics } = useMechanicsQuery()
 const { data: receptionists, isLoading: isLoadingReceptionists } = useReceptionistsQuery()
 
 // Mechanic mutations
-const { mutate: createMechanic, isLoading: isCreatingMechanic } =
-  useCreateMechanicMutation(isDialogOpen)
-const { mutate: updateMechanic, isLoading: isUpdatingMechanic } =
-  useUpdateMechanicMutation(isDialogOpen)
-const { mutate: deleteMechanic, isLoading: isDeletingMechanic } =
-  useDeleteMechanicMutation(isDialogOpen)
+const { mutate: createMechanic } = useCreateMechanicMutation(isDialogOpen)
+const { mutate: updateMechanic } = useUpdateMechanicMutation(isDialogOpen)
+const { mutate: deleteMechanic } = useDeleteMechanicMutation(isDialogOpen)
 
-// Receptionist mutation
-const { mutate: createReceptionist, isLoading: isCreatingReceptionist } = useMutation({
-  key: ['create-receptionist'],
-  mutation: createReceptionistAPI,
-  onSuccess: () => {
-    isDialogOpen.value = false
-    queryCache.invalidateQueries({
-      key: ['receptionists'],
-      exact: true,
-    })
-  },
-  onError: (error) => {
-    console.error('Error creating receptionist:', error)
-    //TODO improve error displayed
-    alert(`Erreur: ${error.message}`)
-  },
-})
+// Receptionist mutations
+const { mutate: createReceptionist } = useCreateReceptionistMutation(isDialogOpen)
+const { mutate: updateReceptionist } = useUpdateReceptionistMutation(isDialogOpen)
 
 function handleAddEmployee() {
   dialogMode.value = 'create'
@@ -96,9 +77,7 @@ function handleSubmit(data: EmployeeFormData) {
     if (data.type === 'mechanic') {
       updateMechanic({ id: selectedEmployee.value.id, data })
     } else {
-      // TODO: Implement receptionist update
-      console.log('Update receptionist:', { id: selectedEmployee.value.id, data })
-      alert('Receptionist update coming soon!')
+      updateReceptionist({ id: selectedEmployee.value.id, data })
     }
   } else {
     // Create mode
