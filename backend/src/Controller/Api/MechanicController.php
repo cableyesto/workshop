@@ -7,53 +7,28 @@ namespace App\Controller\Api;
 use App\Service\MechanicService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-final class MechanicController extends AbstractController
+final class MechanicController extends AbstractAuthenticatedController
 {
     public function __construct(
-        private readonly TokenStorageInterface $tokenStorage,
-        private readonly JWTTokenManagerInterface $jwtManager,
+        TokenStorageInterface $tokenStorage,
+        JWTTokenManagerInterface $jwtManager,
+        LoggerInterface $logger,
         private readonly MechanicService $mechanicService,
-        private readonly LoggerInterface $logger,
     ) {
+        parent::__construct($tokenStorage, $jwtManager, $logger);
     }
 
     #[Route('/api/mechanics', name: 'api_mechanics_index', methods: ['GET'])]
     public function index(): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        // Get garage_id from JWT (receptionist) or garage_ids (owner)
-        $garageId = null;
-
-        // Receptionist: single garage_id
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        }
-
-        // Owner: multiple garage_ids (for now, return mechanics from all garages)
-        // TODO: If frontend needs filtering by specific garage, add query parameter
-        if (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            // For simplicity, get mechanics from first garage
-            // In production, you might want to fetch from all garages or add filtering
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         $mechanics = $this->mechanicService->getMechanicsByGarageId($garageId);
@@ -64,25 +39,9 @@ final class MechanicController extends AbstractController
     #[Route('/api/mechanics', name: 'api_mechanics_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $garageId = null;
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         $data = json_decode($request->getContent(), true);
@@ -133,35 +92,9 @@ final class MechanicController extends AbstractController
     #[Route('/api/mechanics/{id}', name: 'api_mechanics_update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            $this->logger->warning('Update mechanic failed: authentication required', [
-                'mechanic_id' => $id,
-            ]);
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            $this->logger->warning('Update mechanic failed: invalid token', [
-                'mechanic_id' => $id,
-            ]);
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $garageId = null;
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            $this->logger->warning('Update mechanic failed: no garage context in token', [
-                'mechanic_id' => $id,
-                'payload' => $payload,
-            ]);
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId($id);
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         $data = json_decode($request->getContent(), true);
@@ -191,7 +124,6 @@ final class MechanicController extends AbstractController
                 'hireDate' => $mechanic->getStartDate()?->format('Y-m-d'),
             ]);
         } catch (\InvalidArgumentException $e) {
-            // Handle specific validation errors (not found, unauthorized, validation failed)
             $statusCode = match (true) {
                 str_contains($e->getMessage(), 'not found') => JsonResponse::HTTP_NOT_FOUND,
                 str_contains($e->getMessage(), 'Unauthorized') => JsonResponse::HTTP_FORBIDDEN,
@@ -221,35 +153,9 @@ final class MechanicController extends AbstractController
     #[Route('/api/mechanics/{id}', name: 'api_mechanics_delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            $this->logger->warning('Delete mechanic failed: authentication required', [
-                'mechanic_id' => $id,
-            ]);
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            $this->logger->warning('Delete mechanic failed: invalid token', [
-                'mechanic_id' => $id,
-            ]);
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $garageId = null;
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            $this->logger->warning('Delete mechanic failed: no garage context in token', [
-                'mechanic_id' => $id,
-                'payload' => $payload,
-            ]);
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId($id);
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         try {

@@ -7,53 +7,28 @@ namespace App\Controller\Api;
 use App\Service\ReceptionistService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-final class ReceptionistController extends AbstractController
+final class ReceptionistController extends AbstractAuthenticatedController
 {
     public function __construct(
-        private readonly TokenStorageInterface $tokenStorage,
-        private readonly JWTTokenManagerInterface $jwtManager,
+        TokenStorageInterface $tokenStorage,
+        JWTTokenManagerInterface $jwtManager,
+        LoggerInterface $logger,
         private readonly ReceptionistService $receptionistService,
-        private readonly LoggerInterface $logger,
     ) {
+        parent::__construct($tokenStorage, $jwtManager, $logger);
     }
 
     #[Route('/api/receptionists', name: 'api_receptionists_index', methods: ['GET'])]
     public function index(): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        // Get garage_id from JWT (receptionist) or garage_ids (owner)
-        $garageId = null;
-
-        // Receptionist: single garage_id
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        }
-
-        // Owner: multiple garage_ids (for now, return receptionists from all garages)
-        // TODO: If frontend needs filtering by specific garage, add query parameter
-        if (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            // For simplicity, get receptionists from first garage
-            // In production, you might want to fetch from all garages or add filtering
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         $receptionists = $this->receptionistService->getReceptionistsByGarageId($garageId);
@@ -64,25 +39,9 @@ final class ReceptionistController extends AbstractController
     #[Route('/api/receptionists', name: 'api_receptionists_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $garageId = null;
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         $data = json_decode($request->getContent(), true);
@@ -134,35 +93,9 @@ final class ReceptionistController extends AbstractController
     #[Route('/api/receptionists/{id}', name: 'api_receptionists_update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            $this->logger->warning('Update receptionist failed: authentication required', [
-                'receptionist_id' => $id,
-            ]);
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            $this->logger->warning('Update receptionist failed: invalid token', [
-                'receptionist_id' => $id,
-            ]);
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $garageId = null;
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            $this->logger->warning('Update receptionist failed: no garage context in token', [
-                'receptionist_id' => $id,
-                'payload' => $payload,
-            ]);
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId($id);
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         $data = json_decode($request->getContent(), true);
@@ -222,35 +155,9 @@ final class ReceptionistController extends AbstractController
     #[Route('/api/receptionists/{id}', name: 'api_receptionists_delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
-        $token = $this->tokenStorage->getToken();
-        if (!$token) {
-            $this->logger->warning('Delete receptionist failed: authentication required', [
-                'receptionist_id' => $id,
-            ]);
-            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $payload = $this->jwtManager->decode($token);
-        if (!$payload) {
-            $this->logger->warning('Delete receptionist failed: invalid token', [
-                'receptionist_id' => $id,
-            ]);
-            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
-        $garageId = null;
-        if (isset($payload['garage_id'])) {
-            $garageId = $payload['garage_id'];
-        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
-            $garageId = $payload['garage_ids'][0] ?? null;
-        }
-
-        if (!$garageId) {
-            $this->logger->warning('Delete receptionist failed: no garage context in token', [
-                'receptionist_id' => $id,
-                'payload' => $payload,
-            ]);
-            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        $garageId = $this->getAuthenticatedGarageId($id);
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
         }
 
         try {
