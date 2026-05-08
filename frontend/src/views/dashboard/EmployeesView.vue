@@ -3,7 +3,8 @@ import { ref, computed } from 'vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import EmployeeTable from '../../components/EmployeeTable.vue'
-import EmployeeDialog from '../../components/EmployeeDialog.vue'
+import MechanicDialog from '../../components/MechanicDialog.vue'
+import ReceptionistDialog from '../../components/ReceptionistDialog.vue'
 import {
   useMechanicsQuery,
   useReceptionistsQuery,
@@ -71,21 +72,42 @@ function handleDeleteEmployee() {
   }
 }
 
-function handleSubmit(data: EmployeeFormData) {
+function handleMechanicSubmit(data: {
+  lastName: string
+  firstName: string
+  birthDate: string
+  hireDate?: string
+  pin?: string
+}) {
+  const formData: EmployeeFormData = {
+    type: 'mechanic',
+    ...data,
+  }
+
   if (dialogMode.value === 'edit' && selectedEmployee.value) {
-    // Update mode
-    if (data.type === 'mechanic') {
-      updateMechanic({ id: selectedEmployee.value.id, data })
-    } else {
-      updateReceptionist({ id: selectedEmployee.value.id, data })
-    }
+    updateMechanic({ id: selectedEmployee.value.id, data: formData })
   } else {
-    // Create mode
-    if (data.type === 'mechanic') {
-      createMechanic(data)
-    } else {
-      createReceptionist(data)
-    }
+    createMechanic(formData)
+  }
+}
+
+function handleReceptionistSubmit(data: {
+  lastName: string
+  firstName: string
+  birthDate: string
+  hireDate?: string
+  email: string
+  password?: string
+}) {
+  const formData: EmployeeFormData = {
+    type: 'receptionist',
+    ...data,
+  }
+
+  if (dialogMode.value === 'edit' && selectedEmployee.value) {
+    updateReceptionist({ id: selectedEmployee.value.id, data: formData })
+  } else {
+    createReceptionist(formData)
   }
 }
 </script>
@@ -125,13 +147,23 @@ function handleSubmit(data: EmployeeFormData) {
       </TabsContent>
     </Tabs>
 
-    <EmployeeDialog
+    <MechanicDialog
+      v-if="dialogType === 'mechanic'"
       :open="isDialogOpen"
-      :type="dialogType"
       :mode="dialogMode"
-      :employee="selectedEmployee"
+      :mechanic="selectedEmployee as Mechanic | null"
       @close="handleCloseDialog"
-      @submit="handleSubmit"
+      @submit="handleMechanicSubmit"
+      @delete="handleDeleteEmployee"
+    />
+
+    <ReceptionistDialog
+      v-else
+      :open="isDialogOpen"
+      :mode="dialogMode"
+      :receptionist="selectedEmployee as Receptionist | null"
+      @close="handleCloseDialog"
+      @submit="handleReceptionistSubmit"
       @delete="handleDeleteEmployee"
     />
   </div>

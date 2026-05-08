@@ -15,51 +15,52 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
 import { areStringsEqual } from '../utils/validation'
-import type { EmployeeFormData, Mechanic, Receptionist } from '../types/employee'
+import type { Receptionist } from '../types/employee'
 
 interface Props {
   open: boolean
-  type: 'mechanic' | 'receptionist'
   mode: 'create' | 'edit'
-  employee?: Mechanic | Receptionist | null
+  receptionist?: Receptionist | null
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
   close: []
-  submit: [data: EmployeeFormData]
+  submit: [data: {
+    lastName: string
+    firstName: string
+    birthDate: string
+    hireDate?: string
+    email: string
+    password?: string
+  }]
   delete: []
 }>()
 
 const step = ref(1)
 const hasAttemptedSubmit = ref(false)
 
-// Watch dialog open/close and reset forms appropriately
+// Watch dialog open/close
 watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
+      step.value = 1
       hasAttemptedSubmit.value = false
-      // Dialog is opening - set or reset forms based on mode
-      if (props.mode === 'edit' && props.employee) {
-        // Edit mode: pre-fill form
+      if (props.mode === 'edit' && props.receptionist) {
         setStep1Values({
-          lastName: props.employee.lastName,
-          firstName: props.employee.firstName,
-          birthDate: props.employee.birthDate,
-          hireDate: props.employee.hireDate || '',
-          pin: '',
+          lastName: props.receptionist.lastName,
+          firstName: props.receptionist.firstName,
+          birthDate: props.receptionist.birthDate,
+          hireDate: props.receptionist.hireDate || '',
         })
-        if ('email' in props.employee) {
-          setStep2Values({
-            email: props.employee.email,
-            password: '',
-            passwordConfirm: '',
-          })
-        }
+        setStep2Values({
+          email: props.receptionist.email,
+          password: '',
+          passwordConfirm: '',
+        })
       } else {
-        // Create mode: reset to empty
         resetStep1Form()
         resetStep2Form()
       }
@@ -69,43 +70,18 @@ watch(
 
 // Step 1 validation schema
 const step1Schema = toTypedSchema(
-  z
-    .object({
-      lastName: z
-        .string()
-        .min(1, 'Nom requis')
-        .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
-      firstName: z
-        .string()
-        .min(1, 'Prénom requis')
-        .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
-      birthDate: z.string().min(1, 'Date de naissance requise'),
-      hireDate: z.string().optional(),
-      pin: z.string().optional(),
-    })
-    .refine(
-      (data) => {
-        // Mechanic PIN validation
-        if (props.type === 'mechanic') {
-          // Create mode: PIN required
-          if (props.mode === 'create') {
-            return /^\d{4}$/.test(data.pin || '')
-          }
-          // Edit mode: PIN optional, but if provided must be valid
-          if (props.mode === 'edit') {
-            if (!data.pin || data.pin.length === 0) {
-              return true // Empty is OK in edit mode
-            }
-            return /^\d{4}$/.test(data.pin)
-          }
-        }
-        return true
-      },
-      {
-        message: 'Le code PIN doit contenir exactement 4 chiffres',
-        path: ['pin'],
-      },
-    ),
+  z.object({
+    lastName: z
+      .string()
+      .min(1, 'Nom requis')
+      .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+    firstName: z
+      .string()
+      .min(1, 'Prénom requis')
+      .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
+    birthDate: z.string().min(1, 'Date de naissance requise'),
+    hireDate: z.string().optional(),
+  }),
 )
 
 // Step 2 validation schema
@@ -120,16 +96,12 @@ const step2Schema = toTypedSchema(
       (data) => {
         // Create mode: password required
         if (props.mode === 'create') {
-          return (
-            data.password &&
-            data.password.length > 0 &&
-            data.password.length <= 50
-          )
+          return data.password && data.password.length > 0 && data.password.length <= 50
         }
         // Edit mode: password optional, but if provided must be valid
         if (props.mode === 'edit') {
           if (!data.password || data.password.length === 0) {
-            return true // Empty is OK in edit mode
+            return true
           }
           return data.password.length <= 50
         }
@@ -153,7 +125,7 @@ const step2Schema = toTypedSchema(
         // Edit mode: passwordConfirm optional, but if password is provided, confirm is required
         if (props.mode === 'edit') {
           if (!data.password || data.password.length === 0) {
-            return true // No confirm needed if no password
+            return true
           }
           return (
             data.passwordConfirm &&
@@ -184,13 +156,12 @@ const step2Schema = toTypedSchema(
 )
 
 const getStep1InitialValues = () => {
-  if (props.mode === 'edit' && props.employee) {
+  if (props.mode === 'edit' && props.receptionist) {
     return {
-      lastName: props.employee.lastName,
-      firstName: props.employee.firstName,
-      birthDate: props.employee.birthDate,
-      hireDate: props.employee.hireDate || '',
-      pin: '', // PIN not returned from API, leave empty for now
+      lastName: props.receptionist.lastName,
+      firstName: props.receptionist.firstName,
+      birthDate: props.receptionist.birthDate,
+      hireDate: props.receptionist.hireDate || '',
     }
   }
   return {
@@ -198,29 +169,14 @@ const getStep1InitialValues = () => {
     firstName: '',
     birthDate: '',
     hireDate: '',
-    pin: '',
   }
 }
 
-const {
-  handleSubmit: handleStep1Submit,
-  values: step1Values,
-  errors: step1Errors,
-  defineField: defineStep1Field,
-  resetForm: resetStep1Form,
-  setValues: setStep1Values,
-  setErrors: setStep1Errors,
-} = useForm({
-  validationSchema: step1Schema,
-  initialValues: getStep1InitialValues(),
-  validateOnMount: false,
-})
-
 const getStep2InitialValues = () => {
-  if (props.mode === 'edit' && props.employee && 'email' in props.employee) {
+  if (props.mode === 'edit' && props.receptionist) {
     return {
-      email: props.employee.email,
-      password: '', // Don't pre-fill password
+      email: props.receptionist.email,
+      password: '',
       passwordConfirm: '',
     }
   }
@@ -232,13 +188,25 @@ const getStep2InitialValues = () => {
 }
 
 const {
+  handleSubmit: handleStep1Submit,
+  values: step1Values,
+  errors: step1Errors,
+  defineField: defineStep1Field,
+  resetForm: resetStep1Form,
+  setValues: setStep1Values,
+} = useForm({
+  validationSchema: step1Schema,
+  initialValues: getStep1InitialValues(),
+  validateOnMount: false,
+})
+
+const {
   handleSubmit: handleStep2Submit,
   values: step2Values,
   errors: step2Errors,
   defineField: defineStep2Field,
   resetForm: resetStep2Form,
   setValues: setStep2Values,
-  setErrors: setStep2Errors,
 } = useForm({
   validationSchema: step2Schema,
   initialValues: getStep2InitialValues(),
@@ -250,7 +218,6 @@ const [lastName, lastNameAttrs] = defineStep1Field('lastName')
 const [firstName, firstNameAttrs] = defineStep1Field('firstName')
 const [birthDate, birthDateAttrs] = defineStep1Field('birthDate')
 const [hireDate, hireDateAttrs] = defineStep1Field('hireDate')
-const [pin, pinAttrs] = defineStep1Field('pin')
 
 // Step 2 fields
 const [email, emailAttrs] = defineStep2Field('email')
@@ -259,22 +226,17 @@ const [passwordConfirm, passwordConfirmAttrs] = defineStep2Field('passwordConfir
 
 const dialogTitle = computed(() => {
   const action = props.mode === 'edit' ? 'Modifier' : 'Ajouter'
-
-  if (props.type === 'mechanic') {
-    return `${action} un mécanicien`
-  }
   if (props.mode === 'edit') {
     return `${action} un réceptionniste`
   }
-  return step.value === 1 ? 'Ajouter un réceptionniste (1/2)' : 'Ajouter un réceptionniste (2/2)'
+  return step.value === 1
+    ? 'Ajouter un réceptionniste (1/2)'
+    : 'Ajouter un réceptionniste (2/2)'
 })
 
 const dialogDescription = computed(() => {
   if (props.mode === 'edit') {
-    return "Modifiez les informations de l'employé."
-  }
-  if (props.type === 'mechanic') {
-    return 'Remplissez les informations du nouveau mécanicien.'
+    return "Modifiez les informations du réceptionniste."
   }
   return step.value === 1
     ? 'Remplissez les informations personnelles.'
@@ -295,47 +257,26 @@ function handleDelete() {
 }
 
 const onStep1Submit = handleStep1Submit(
-  (values) => {
-    if (props.type === 'mechanic') {
-      // Submit mechanic form
-      const data: EmployeeFormData = {
-        type: 'mechanic',
-        lastName: values.lastName,
-        firstName: values.firstName,
-        birthDate: values.birthDate,
-        hireDate: values.hireDate,
-        pin: values.pin,
-      }
-      emit('submit', data)
-      // Don't close here - let parent handle it based on mutation result
-    } else {
-      // Receptionist: go to step 2
-      step.value = 2
-    }
+  () => {
+    step.value = 2
   },
   () => {
-    // On validation error
     hasAttemptedSubmit.value = true
   },
 )
 
 const onStep2Submit = handleStep2Submit(
-  (values) => {
-    // Submit receptionist form with both steps data
-    const data: EmployeeFormData = {
-      type: 'receptionist',
+  (vals) => {
+    emit('submit', {
       lastName: step1Values.lastName!,
       firstName: step1Values.firstName!,
       birthDate: step1Values.birthDate!,
       hireDate: step1Values.hireDate,
-      email: values.email,
-      password: values.password,
-    }
-    emit('submit', data)
-    // Don't close here - let parent handle it based on mutation result
+      email: vals.email,
+      password: vals.password,
+    })
   },
   () => {
-    // On validation error
     hasAttemptedSubmit.value = true
   },
 )
@@ -395,25 +336,6 @@ const onStep2Submit = handleStep2Submit(
           </Field>
         </FieldGroup>
 
-        <!-- Code PIN (mechanic only) -->
-        <FieldGroup v-if="type === 'mechanic'" class="gap-2">
-          <FieldLabel for="pin">Code PIN (4 chiffres)</FieldLabel>
-          <Field>
-            <Input
-              id="pin"
-              v-model="pin"
-              v-bind="pinAttrs"
-              type="text"
-              maxlength="4"
-              inputmode="numeric"
-              placeholder="0000"
-            />
-            <FieldError v-if="hasAttemptedSubmit && step1Errors.pin">{{
-              step1Errors.pin
-            }}</FieldError>
-          </Field>
-        </FieldGroup>
-
         <DialogFooter class="flex justify-between">
           <div>
             <Button
@@ -427,19 +349,13 @@ const onStep2Submit = handleStep2Submit(
           </div>
           <div class="flex gap-2">
             <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
-            <Button type="submit">
-              {{ type === 'mechanic' ? (mode === 'edit' ? 'Modifier' : 'Ajouter') : 'Suivant' }}
-            </Button>
+            <Button type="submit">Suivant</Button>
           </div>
         </DialogFooter>
       </form>
 
-      <!-- Step 2 Form (Receptionist only) -->
-      <form
-        v-if="step === 2 && type === 'receptionist'"
-        @submit="onStep2Submit"
-        class="grid gap-4 py-4"
-      >
+      <!-- Step 2 Form -->
+      <form v-if="step === 2" @submit="onStep2Submit" class="grid gap-4 py-4">
         <!-- Email -->
         <FieldGroup class="gap-2">
           <FieldLabel for="email">Email</FieldLabel>
