@@ -174,3 +174,46 @@ export function useUpdateMechanicMutation(dialogOpen: Ref<boolean>) {
     },
   })
 }
+
+/**
+ * API function to delete a mechanic
+ */
+export async function deleteMechanicAPI(id: number): Promise<void> {
+  const token = getToken()
+  const response = await fetch(`/api/mechanics/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to delete mechanic' }))
+    throw new Error(error.error || 'Failed to delete mechanic')
+  }
+}
+
+/**
+ * Mutation hook to delete a mechanic
+ */
+export function useDeleteMechanicMutation(dialogOpen: Ref<boolean>) {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    key: ['delete-mechanic'],
+    mutation: deleteMechanicAPI,
+    onSuccess: () => {
+      dialogOpen.value = false
+      queryCache.invalidateQueries({
+        key: ['mechanics'],
+        exact: true,
+      })
+    },
+    onError: (error) => {
+      console.error('Error deleting mechanic:', error)
+      //TODO improve
+      alert(`Erreur: ${error.message}`)
+    },
+  })
+}

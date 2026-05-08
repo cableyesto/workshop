@@ -10,6 +10,7 @@ import {
   useReceptionistsQuery,
   useCreateMechanicMutation,
   useUpdateMechanicMutation,
+  useDeleteMechanicMutation,
   createReceptionistAPI,
 } from '../../api/employees'
 import type { EmployeeFormData, Mechanic, Receptionist } from '../../types/employee'
@@ -30,8 +31,12 @@ const { data: mechanics, isLoading: isLoadingMechanics } = useMechanicsQuery()
 const { data: receptionists, isLoading: isLoadingReceptionists } = useReceptionistsQuery()
 
 // Mechanic mutations
-const { mutate: createMechanic, isLoading: isCreatingMechanic } = useCreateMechanicMutation(isDialogOpen)
-const { mutate: updateMechanic, isLoading: isUpdatingMechanic } = useUpdateMechanicMutation(isDialogOpen)
+const { mutate: createMechanic, isLoading: isCreatingMechanic } =
+  useCreateMechanicMutation(isDialogOpen)
+const { mutate: updateMechanic, isLoading: isUpdatingMechanic } =
+  useUpdateMechanicMutation(isDialogOpen)
+const { mutate: deleteMechanic, isLoading: isDeletingMechanic } =
+  useDeleteMechanicMutation(isDialogOpen)
 
 // Receptionist mutation
 const { mutate: createReceptionist, isLoading: isCreatingReceptionist } = useMutation({
@@ -67,6 +72,22 @@ function handleCloseDialog() {
   isDialogOpen.value = false
   dialogMode.value = 'create'
   selectedEmployee.value = null
+}
+
+function handleDeleteEmployee() {
+  if (!selectedEmployee.value) return
+
+  // if (!confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) {
+  //   return
+  // }
+
+  if (dialogType.value === 'mechanic') {
+    deleteMechanic(selectedEmployee.value.id)
+  } else {
+    // TODO: Implement receptionist delete
+    console.log('Delete receptionist:', selectedEmployee.value.id)
+    alert('Receptionist delete coming soon!')
+  }
 }
 
 function handleSubmit(data: EmployeeFormData) {
@@ -132,6 +153,7 @@ function handleSubmit(data: EmployeeFormData) {
       :employee="selectedEmployee"
       @close="handleCloseDialog"
       @submit="handleSubmit"
+      @delete="handleDeleteEmployee"
     />
   </div>
 </template>

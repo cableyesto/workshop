@@ -29,6 +29,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   close: []
   submit: [data: EmployeeFormData]
+  delete: []
 }>()
 
 const step = ref(1)
@@ -235,9 +236,7 @@ function handlePrevious() {
 }
 
 function handleDelete() {
-  // TODO: Implement delete functionality
-  console.log('Delete employee - to be implemented')
-  alert('Fonction de suppression à implémenter')
+  emit('delete')
 }
 
 const onStep1Submit = handleStep1Submit(

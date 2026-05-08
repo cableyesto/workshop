@@ -217,4 +217,73 @@ final class MechanicController extends AbstractController
             return $this->json(['error' => 'Failed to update mechanic'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    #[Route('/api/mechanics/{id}', name: 'api_mechanics_delete', methods: ['DELETE'])]
+    public function delete(int $id): JsonResponse
+    {
+        $token = $this->tokenStorage->getToken();
+        if (!$token) {
+            $this->logger->warning('Delete mechanic failed: authentication required', [
+                'mechanic_id' => $id,
+            ]);
+            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $payload = $this->jwtManager->decode($token);
+        if (!$payload) {
+            $this->logger->warning('Delete mechanic failed: invalid token', [
+                'mechanic_id' => $id,
+            ]);
+            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $garageId = null;
+        if (isset($payload['garage_id'])) {
+            $garageId = $payload['garage_id'];
+        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
+            $garageId = $payload['garage_ids'][0] ?? null;
+        }
+
+        if (!$garageId) {
+            $this->logger->warning('Delete mechanic failed: no garage context in token', [
+                'mechanic_id' => $id,
+                'payload' => $payload,
+            ]);
+            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $this->mechanicService->deleteMechanic($id, $garageId);
+
+            $this->logger->info('Mechanic deleted successfully', [
+                'mechanic_id' => $id,
+                'garage_id' => $garageId,
+            ]);
+
+            return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
+        } catch (\InvalidArgumentException $e) {
+            $statusCode = match (true) {
+                str_contains($e->getMessage(), 'not found') => JsonResponse::HTTP_NOT_FOUND,
+                str_contains($e->getMessage(), 'Unauthorized') => JsonResponse::HTTP_FORBIDDEN,
+                default => JsonResponse::HTTP_BAD_REQUEST,
+            };
+
+            $this->logger->warning('Error deleting mechanic', [
+                'error' => $e->getMessage(),
+                'mechanic_id' => $id,
+                'garage_id' => $garageId,
+                'status_code' => $statusCode,
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], $statusCode);
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error when deleting mechanic', [
+                'error' => $e->getMessage(),
+                'mechanic_id' => $id,
+                'garage_id' => $garageId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->json(['error' => 'Failed to delete mechanic'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

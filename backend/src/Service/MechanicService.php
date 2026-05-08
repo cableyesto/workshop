@@ -204,4 +204,33 @@ final class MechanicService
 
         return $mechanic;
     }
+
+    /**
+     * Delete a mechanic
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function deleteMechanic(int $mechanicId, int $garageId): void
+    {
+        $mechanic = $this->mechanicRepository->find($mechanicId);
+        if (!$mechanic) {
+            throw new \InvalidArgumentException('Mechanic not found');
+        }
+
+        // Verify mechanic belongs to the requesting user's garage
+        $belongsToGarage = false;
+        foreach ($mechanic->getGarages() as $garage) {
+            if ($garage->getId() === $garageId) {
+                $belongsToGarage = true;
+                break;
+            }
+        }
+
+        if (!$belongsToGarage) {
+            throw new \InvalidArgumentException('Unauthorized: mechanic does not belong to your garage');
+        }
+
+        $this->entityManager->remove($mechanic);
+        $this->entityManager->flush();
+    }
 }
