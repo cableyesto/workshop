@@ -201,6 +201,29 @@ export function useUpdateReceptionistMutation(dialogOpen: Ref<boolean>) {
 }
 
 /**
+ * Mutation hook to delete a receptionist
+ */
+export function useDeleteReceptionistMutation(dialogOpen: Ref<boolean>) {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    key: ['delete-receptionist'],
+    mutation: deleteReceptionistAPI,
+    onSuccess: () => {
+      dialogOpen.value = false
+      queryCache.invalidateQueries({
+        key: ['receptionists'],
+        exact: true,
+      })
+    },
+    onError: (error) => {
+      console.error('Error deleting receptionist:', error)
+      alert(`Erreur: ${error.message}`)
+    },
+  })
+}
+
+/**
  * Mutation hook to create a mechanic
  */
 export function useCreateMechanicMutation(dialogOpen: Ref<boolean>) {
@@ -247,6 +270,27 @@ export function useUpdateMechanicMutation(dialogOpen: Ref<boolean>) {
       alert(`Erreur: ${error.message}`)
     },
   })
+}
+
+/**
+ * API function to delete a receptionist
+ */
+export async function deleteReceptionistAPI(id: number): Promise<void> {
+  const token = getToken()
+  const response = await fetch(`/api/receptionists/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Failed to delete receptionist' }))
+    throw new Error(error.error || 'Failed to delete receptionist')
+  }
 }
 
 /**

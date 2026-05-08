@@ -12,6 +12,7 @@ import {
   useDeleteMechanicMutation,
   useCreateReceptionistMutation,
   useUpdateReceptionistMutation,
+  useDeleteReceptionistMutation,
 } from '../../api/employees'
 import type { EmployeeFormData, Mechanic, Receptionist } from '../../types/employee'
 
@@ -36,6 +37,7 @@ const { mutate: deleteMechanic } = useDeleteMechanicMutation(isDialogOpen)
 // Receptionist mutations
 const { mutate: createReceptionist } = useCreateReceptionistMutation(isDialogOpen)
 const { mutate: updateReceptionist } = useUpdateReceptionistMutation(isDialogOpen)
+const { mutate: deleteReceptionist } = useDeleteReceptionistMutation(isDialogOpen)
 
 function handleAddEmployee() {
   dialogMode.value = 'create'
@@ -65,9 +67,7 @@ function handleDeleteEmployee() {
   if (dialogType.value === 'mechanic') {
     deleteMechanic(selectedEmployee.value.id)
   } else {
-    // TODO: Implement receptionist delete
-    console.log('Delete receptionist:', selectedEmployee.value.id)
-    alert('Receptionist delete coming soon!')
+    deleteReceptionist(selectedEmployee.value.id)
   }
 }
 
