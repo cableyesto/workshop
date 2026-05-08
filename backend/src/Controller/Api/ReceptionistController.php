@@ -218,4 +218,73 @@ final class ReceptionistController extends AbstractController
             return $this->json(['error' => 'Failed to update receptionist'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    #[Route('/api/receptionists/{id}', name: 'api_receptionists_delete', methods: ['DELETE'])]
+    public function delete(int $id): JsonResponse
+    {
+        $token = $this->tokenStorage->getToken();
+        if (!$token) {
+            $this->logger->warning('Delete receptionist failed: authentication required', [
+                'receptionist_id' => $id,
+            ]);
+            return $this->json(['error' => 'Authentication required'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $payload = $this->jwtManager->decode($token);
+        if (!$payload) {
+            $this->logger->warning('Delete receptionist failed: invalid token', [
+                'receptionist_id' => $id,
+            ]);
+            return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $garageId = null;
+        if (isset($payload['garage_id'])) {
+            $garageId = $payload['garage_id'];
+        } elseif (isset($payload['garage_ids']) && is_array($payload['garage_ids'])) {
+            $garageId = $payload['garage_ids'][0] ?? null;
+        }
+
+        if (!$garageId) {
+            $this->logger->warning('Delete receptionist failed: no garage context in token', [
+                'receptionist_id' => $id,
+                'payload' => $payload,
+            ]);
+            return $this->json(['error' => 'No garage context in token'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $this->receptionistService->deleteReceptionist($id, $garageId);
+
+            $this->logger->info('Receptionist deleted successfully', [
+                'receptionist_id' => $id,
+                'garage_id' => $garageId,
+            ]);
+
+            return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
+        } catch (\InvalidArgumentException $e) {
+            $statusCode = match (true) {
+                str_contains($e->getMessage(), 'not found') => JsonResponse::HTTP_NOT_FOUND,
+                str_contains($e->getMessage(), 'Unauthorized') => JsonResponse::HTTP_FORBIDDEN,
+                default => JsonResponse::HTTP_BAD_REQUEST,
+            };
+
+            $this->logger->warning('Error deleting receptionist', [
+                'error' => $e->getMessage(),
+                'receptionist_id' => $id,
+                'garage_id' => $garageId,
+                'status_code' => $statusCode,
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], $statusCode);
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error when deleting receptionist', [
+                'error' => $e->getMessage(),
+                'receptionist_id' => $id,
+                'garage_id' => $garageId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return $this->json(['error' => 'Failed to delete receptionist'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

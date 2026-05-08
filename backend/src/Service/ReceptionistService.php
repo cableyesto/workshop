@@ -178,4 +178,33 @@ final class ReceptionistService
 
         return $receptionist;
     }
+
+    /**
+     * Delete a receptionist
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function deleteReceptionist(int $receptionistId, int $garageId): void
+    {
+        $receptionist = $this->receptionistRepository->find($receptionistId);
+        if (!$receptionist) {
+            throw new \InvalidArgumentException('Receptionist not found');
+        }
+
+        // Verify receptionist belongs to the requesting user's garage
+        $belongsToGarage = false;
+        foreach ($receptionist->getGarages() as $garage) {
+            if ($garage->getId() === $garageId) {
+                $belongsToGarage = true;
+                break;
+            }
+        }
+
+        if (!$belongsToGarage) {
+            throw new \InvalidArgumentException('Unauthorized: receptionist does not belong to your garage');
+        }
+
+        $this->entityManager->remove($receptionist);
+        $this->entityManager->flush();
+    }
 }
