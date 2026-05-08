@@ -33,15 +33,33 @@ const step = ref(1)
 
 // Step 1 validation schema
 const step1Schema = toTypedSchema(
-  z.object({
-    lastName: z.string().min(1, 'Nom requis').max(50, 'Le nom ne peut pas dépasser 50 caractères'),
-    firstName: z
-      .string()
-      .min(1, 'Prénom requis')
-      .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
-    birthDate: z.string().min(1, 'Date de naissance requise'),
-    hireDate: z.string().optional(),
-  }),
+  z
+    .object({
+      lastName: z
+        .string()
+        .min(1, 'Nom requis')
+        .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+      firstName: z
+        .string()
+        .min(1, 'Prénom requis')
+        .max(50, 'Le prénom ne peut pas dépasser 50 caractères'),
+      birthDate: z.string().min(1, 'Date de naissance requise'),
+      hireDate: z.string().optional(),
+      pin: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        // If mechanic, PIN must be exactly 4 digits
+        if (props.type === 'mechanic') {
+          return /^\d{4}$/.test(data.pin || '')
+        }
+        return true
+      },
+      {
+        message: 'Le code PIN doit contenir exactement 4 chiffres',
+        path: ['pin'],
+      },
+    ),
 )
 
 // Step 2 validation schema
@@ -77,6 +95,7 @@ const {
     firstName: '',
     birthDate: '',
     hireDate: '',
+    pin: '',
   },
 })
 
@@ -100,6 +119,7 @@ const [lastName, lastNameAttrs] = defineStep1Field('lastName')
 const [firstName, firstNameAttrs] = defineStep1Field('firstName')
 const [birthDate, birthDateAttrs] = defineStep1Field('birthDate')
 const [hireDate, hireDateAttrs] = defineStep1Field('hireDate')
+const [pin, pinAttrs] = defineStep1Field('pin')
 
 // Step 2 fields
 const [email, emailAttrs] = defineStep2Field('email')
@@ -142,6 +162,7 @@ const onStep1Submit = handleStep1Submit((values) => {
       firstName: values.firstName,
       birthDate: values.birthDate,
       hireDate: values.hireDate,
+      pin: values.pin,
     }
     emit('submit', data)
     handleClose()
@@ -176,9 +197,9 @@ const onStep2Submit = handleStep2Submit((values) => {
       </DialogHeader>
 
       <!-- Step 1 Form -->
-      <form v-if="step === 1" @submit="onStep1Submit" class="grid gap-4 py-4">
+      <form v-if="step === 1" @submit="onStep1Submit" class="grid gap-3 py-0">
         <!-- Nom -->
-        <FieldGroup>
+        <FieldGroup class="gap-2">
           <FieldLabel for="lastName">Nom</FieldLabel>
           <Field>
             <Input id="lastName" v-model="lastName" v-bind="lastNameAttrs" type="text" />
@@ -187,7 +208,7 @@ const onStep2Submit = handleStep2Submit((values) => {
         </FieldGroup>
 
         <!-- Prénom -->
-        <FieldGroup>
+        <FieldGroup class="gap-2">
           <FieldLabel for="firstName">Prénom</FieldLabel>
           <Field>
             <Input id="firstName" v-model="firstName" v-bind="firstNameAttrs" type="text" />
@@ -196,7 +217,7 @@ const onStep2Submit = handleStep2Submit((values) => {
         </FieldGroup>
 
         <!-- Date de naissance -->
-        <FieldGroup>
+        <FieldGroup class="gap-2">
           <FieldLabel for="birthDate">Date de naissance</FieldLabel>
           <Field>
             <Input id="birthDate" v-model="birthDate" v-bind="birthDateAttrs" type="date" />
@@ -205,11 +226,28 @@ const onStep2Submit = handleStep2Submit((values) => {
         </FieldGroup>
 
         <!-- Date de démarrage -->
-        <FieldGroup>
+        <FieldGroup class="gap-2">
           <FieldLabel for="hireDate">Date de démarrage (optionnel)</FieldLabel>
           <Field>
             <Input id="hireDate" v-model="hireDate" v-bind="hireDateAttrs" type="date" />
             <FieldError v-if="step1Errors.hireDate">{{ step1Errors.hireDate }}</FieldError>
+          </Field>
+        </FieldGroup>
+
+        <!-- Code PIN (mechanic only) -->
+        <FieldGroup v-if="type === 'mechanic'" class="gap-2">
+          <FieldLabel for="pin">Code PIN (4 chiffres)</FieldLabel>
+          <Field>
+            <Input
+              id="pin"
+              v-model="pin"
+              v-bind="pinAttrs"
+              type="text"
+              maxlength="4"
+              inputmode="numeric"
+              placeholder="0000"
+            />
+            <FieldError v-if="step1Errors.pin">{{ step1Errors.pin }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -228,7 +266,7 @@ const onStep2Submit = handleStep2Submit((values) => {
         class="grid gap-4 py-4"
       >
         <!-- Email -->
-        <FieldGroup>
+        <FieldGroup class="gap-2">
           <FieldLabel for="email">Email</FieldLabel>
           <Field>
             <Input id="email" v-model="email" v-bind="emailAttrs" type="email" />
@@ -237,7 +275,7 @@ const onStep2Submit = handleStep2Submit((values) => {
         </FieldGroup>
 
         <!-- Password -->
-        <FieldGroup>
+        <FieldGroup class="gap-2">
           <FieldLabel for="password">Mot de passe</FieldLabel>
           <Field>
             <Input id="password" v-model="password" v-bind="passwordAttrs" type="password" />
@@ -246,7 +284,7 @@ const onStep2Submit = handleStep2Submit((values) => {
         </FieldGroup>
 
         <!-- Password Confirmation -->
-        <FieldGroup>
+        <FieldGroup class="gap-2">
           <FieldLabel for="passwordConfirm">Confirmer le mot de passe</FieldLabel>
           <Field>
             <Input

@@ -1,6 +1,6 @@
 import { useQuery } from '@pinia/colada'
 import { getToken } from '../utils/auth'
-import type { Mechanic, Receptionist } from '../types/employee'
+import type { Mechanic, Receptionist, EmployeeFormData } from '../types/employee'
 
 /**
  * Fetch all mechanics for the current garage
@@ -54,4 +54,26 @@ export function useReceptionistsQuery() {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
+}
+
+/**
+ * API function to create a new mechanic
+ */
+export async function createMechanicAPI(data: EmployeeFormData): Promise<Mechanic> {
+  const token = getToken()
+  const response = await fetch('/api/mechanics', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to create mechanic' }))
+    throw new Error(error.error || 'Failed to create mechanic')
+  }
+
+  return response.json()
 }

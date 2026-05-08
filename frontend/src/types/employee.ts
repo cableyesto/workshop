@@ -21,6 +21,7 @@ export interface EmployeeFormData {
   firstName: string
   birthDate: string // YYYY-MM-DD format from input type="date" - required
   hireDate?: string // YYYY-MM-DD format from input type="date" - optional
+  pin?: string // 4-digit PIN for mechanics only
   email?: string
   password?: string
 }
