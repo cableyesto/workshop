@@ -2,15 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/vue'
 import { ref } from 'vue'
 import '@testing-library/jest-dom'
-import GarageView from '@/views/dashboard/GarageView.vue'
-import type { Garage } from '@/types'
+import GarageView from '../../../views/dashboard/GarageView.vue'
+import type { Garage } from '../../../types'
 
 // Mock the garage API
-vi.mock('@/api/garage', () => ({
+vi.mock('../../../api/garage', () => ({
   useGarageQuery: vi.fn(),
 }))
 
-import { useGarageQuery } from '@/api/garage'
+import { useGarageQuery } from '../../../api/garage'
 
 // Helper function to mock garage query with reactive refs
 function mockGarageQuery(garageData: Garage) {
