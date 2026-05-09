@@ -61,6 +61,28 @@ final class CarRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find all stored cars with interventions for a specific garage
+     *
+     * @return Car[]
+     */
+    public function findCarsForRestitution(int $garageId): array
+    {
+        return $this->createQueryBuilder('car')
+            ->select('car', 'color', 'client', 'interventions')
+            ->join('car.color', 'color')
+            ->join('car.client', 'client')
+            ->join('car.interventions', 'interventions')
+            ->join('interventions.mechanics', 'mechanic')
+            ->join('mechanic.garages', 'garage')
+            ->where('garage.id = :garageId')
+            ->andWhere('car.isStored = :isStored')
+            ->setParameter('garageId', $garageId)
+            ->setParameter('isStored', true)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Find car by license plate for a specific garage
      */
     public function findByLicensePlateForGarage(string $licensePlate, int $garageId): ?Car

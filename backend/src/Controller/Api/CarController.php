@@ -49,6 +49,19 @@ final class CarController extends AbstractAuthenticatedController
         return $this->json($cars);
     }
 
+    #[Route('/api/cars/restitution', name: 'api_cars_restitution', methods: ['GET'])]
+    public function restitution(): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $cars = $this->carService->getCarsForRestitution($garageId);
+
+        return $this->json($cars);
+    }
+
     #[Route('/api/cars/license-plate', name: 'api_cars_update_storage_by_license_plate', methods: ['PATCH'])]
     public function updateStorageByLicensePlate(Request $request): JsonResponse
     {

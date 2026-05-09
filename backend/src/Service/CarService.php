@@ -59,6 +59,30 @@ final class CarService
     }
 
     /**
+     * Get all cars ready for restitution for a specific garage
+     */
+    public function getCarsForRestitution(int $garageId): array
+    {
+        $cars = $this->carRepository->findCarsForRestitution($garageId);
+
+        return Collection::make($cars)
+            ->filter(fn($car) => $this->calculateGlobalStatus($car) === 'terminee')
+            ->map(fn($car) => [
+                'id' => $car->getId(),
+                'manufacturer' => $car->getManufacturer(),
+                'model' => $car->getModel(),
+                'licensePlate' => $car->getLicensePlate(),
+                'color' => $car->getColor()->getName(),
+                'client' => $this->mapClient($car->getClient()),
+                'intervention' => [
+                    'status' => 'terminee',
+                ],
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    /**
      * Map client entity to array
      */
     private function mapClient($client): array
