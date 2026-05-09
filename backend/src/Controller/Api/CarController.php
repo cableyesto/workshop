@@ -170,6 +170,7 @@ final class CarController extends AbstractAuthenticatedController
 
         try {
             $car = $this->carService->createCarWithClient(
+                $garageId,
                 $data['client']['firstName'],
                 $data['client']['lastName'],
                 $data['client']['email'] ?? null,

@@ -59,11 +59,18 @@ class Garage
     #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'garages')]
     private Collection $employees;
 
+    /**
+     * @var Collection<int, Client>
+     */
+    #[ORM\OneToMany(targetEntity: Client::class, mappedBy: 'garage')]
+    private Collection $clients;
+
     public function __construct()
     {
         $this->owners = new ArrayCollection();
         $this->timeSlots = new ArrayCollection();
         $this->employees = new ArrayCollection();
+        $this->clients = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -220,6 +227,36 @@ class Garage
     public function removeEmployee(Employee $employee): static
     {
         $this->employees->removeElement($employee);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Client>
+     */
+    public function getClients(): Collection
+    {
+        return $this->clients;
+    }
+
+    public function addClient(Client $client): static
+    {
+        if (!$this->clients->contains($client)) {
+            $this->clients->add($client);
+            $client->setGarage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeClient(Client $client): static
+    {
+        if ($this->clients->removeElement($client)) {
+            // set the owning side to null (unless already changed)
+            if ($client->getGarage() === $this) {
+                $client->setGarage(null);
+            }
+        }
 
         return $this;
     }

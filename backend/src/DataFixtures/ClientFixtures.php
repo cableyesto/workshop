@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\DataFixtures;
 
 use App\Entity\Client;
+use App\Entity\Garage;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 
-class ClientFixtures extends Fixture
+class ClientFixtures extends Fixture implements DependentFixtureInterface
 {
     public const CLIENT_REFERENCE = 'client_%d';
 
@@ -20,10 +22,15 @@ class ClientFixtures extends Fixture
         for ($i = 1; $i <= 10; ++$i) {
             $client = new Client();
 
+            // Assign client to a random garage (1-5)
+            $garageIndex = $faker->numberBetween(1, 5);
+            $garage = $this->getReference(sprintf(GarageFixtures::GARAGE_REFERENCE, $garageIndex), Garage::class);
+
             $client->setLastName($faker->lastName())
                 ->setFirstName($faker->firstName())
                 ->setPhoneNumber($this->generateFrenchPhoneNumber($faker))
-                ->setIsClientCalledBack($faker->boolean(40)); // 40% chance of being called back
+                ->setIsClientCalledBack($faker->boolean(40)) // 40% chance of being called back
+                ->setGarage($garage);
 
             // 50% of clients have email, 50% don't
             if ($faker->boolean(50)) {
@@ -35,6 +42,13 @@ class ClientFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    public function getDependencies(): array
+    {
+        return [
+            GarageFixtures::class,
+        ];
     }
 
     private function generateFrenchPhoneNumber(\Faker\Generator $faker): string

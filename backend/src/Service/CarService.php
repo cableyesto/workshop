@@ -10,6 +10,7 @@ use App\Enum\InterventionStatus;
 use App\Repository\CarRepository;
 use App\Repository\ClientRepository;
 use App\Repository\ColorRepository;
+use App\Repository\GarageRepository;
 use Illuminate\Support\Collection;
 
 final class CarService
@@ -18,6 +19,7 @@ final class CarService
         private readonly CarRepository $carRepository,
         private readonly ColorRepository $colorRepository,
         private readonly ClientRepository $clientRepository,
+        private readonly GarageRepository $garageRepository,
     ) {
     }
 
@@ -227,6 +229,7 @@ final class CarService
      * Create a new car with a new client
      */
     public function createCarWithClient(
+        int $garageId,
         string $clientFirstName,
         string $clientLastName,
         ?string $clientEmail,
@@ -244,6 +247,12 @@ final class CarService
         try {
             $em->beginTransaction();
 
+            // Validate and fetch garage entity
+            $garage = $this->garageRepository->find($garageId);
+            if (!$garage) {
+                throw new \RuntimeException('Garage not found');
+            }
+
             // Validate and fetch color entity
             $color = $this->colorRepository->findOneBy(['name' => $carColorName]);
             if (!$color) {
@@ -257,7 +266,8 @@ final class CarService
                 ->setLastName($clientLastName)
                 ->setEmail($clientEmail)
                 ->setPhoneNumber($clientPhone)
-                ->setIsClientCalledBack(false);
+                ->setIsClientCalledBack(false)
+                ->setGarage($garage);
 
             $em->persist($client);
 

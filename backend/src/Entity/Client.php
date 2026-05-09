@@ -46,6 +46,10 @@ class Client
     #[Assert\Count(min: 1, minMessage: 'A client must own at least one car.')]
     private Collection $cars;
 
+    #[ORM\ManyToOne(inversedBy: 'clients')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Garage $garage = null;
+
     public function __construct()
     {
         $this->cars = new ArrayCollection();
@@ -142,6 +146,18 @@ class Client
                 $car->setClient(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getGarage(): ?Garage
+    {
+        return $this->garage;
+    }
+
+    public function setGarage(?Garage $garage): static
+    {
+        $this->garage = $garage;
 
         return $this;
     }
