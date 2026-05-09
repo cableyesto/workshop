@@ -59,4 +59,23 @@ final class CarRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find car by license plate for a specific garage
+     */
+    public function findByLicensePlateForGarage(string $licensePlate, int $garageId): ?Car
+    {
+        return $this->createQueryBuilder('car')
+            ->join('car.client', 'client')
+            ->join('car.interventions', 'interventions')
+            ->join('interventions.mechanics', 'mechanic')
+            ->join('mechanic.garages', 'garage')
+            ->where('car.licensePlate = :licensePlate')
+            ->andWhere('garage.id = :garageId')
+            ->setParameter('licensePlate', $licensePlate)
+            ->setParameter('garageId', $garageId)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

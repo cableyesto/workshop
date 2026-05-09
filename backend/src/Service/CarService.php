@@ -112,4 +112,22 @@ final class CarService
 
         return 'terminee';
     }
+
+    /**
+     * Update car storage status by license plate
+     */
+    public function updateCarStorageByLicensePlate(
+        string $licensePlate,
+        bool $isStored,
+        int $garageId,
+    ): void {
+        $car = $this->carRepository->findByLicensePlateForGarage($licensePlate, $garageId);
+
+        if (!$car) {
+            throw new \RuntimeException('Aucune fiche trouvée pour cette plaque d\'immatriculation');
+        }
+
+        $car->setIsStored($isStored);
+        $this->carRepository->getEntityManager()->flush();
+    }
 }
