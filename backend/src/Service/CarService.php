@@ -35,9 +35,8 @@ final class CarService
                     'firstName' => $car->getClient()->getFirstName(),
                     'lastName' => $car->getClient()->getLastName(),
                     'email' => $car->getClient()->getEmail(),
-                    'phone' => $car->getClient()->getPhone(),
-                    'address' => $car->getClient()->getAddress(),
-                    'isClientCalledBack' => $car->getClient()->getIsClientCalledBack(),
+                    'phone' => $car->getClient()->getPhoneNumber(),
+                    'isClientCalledBack' => $car->getClient()->isClientCalledBack(),
                 ],
             ])
             ->values()
