@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryCache } from '@pinia/colada'
 import { apiRequest } from './helpers'
-import type { StoredCar, CarWithIntervention } from '../types/cars'
+import type { Car, StoredCar, CarWithIntervention } from '../types/cars'
 import type { Ref } from 'vue'
 
 // ============================================
@@ -13,7 +13,7 @@ import type { Ref } from 'vue'
 export function useAllCarsQuery() {
   return useQuery({
     key: ['cars'],
-    query: () => apiRequest<StoredCar[]>('/api/cars', {}, 'Failed to fetch cars'),
+    query: () => apiRequest<Car[]>('/api/cars', {}, 'Failed to fetch cars'),
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }

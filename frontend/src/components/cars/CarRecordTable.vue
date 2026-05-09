@@ -7,18 +7,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { StoredCar } from '../../types/cars'
+import type { Car } from '../../types/cars'
 import type { Client } from '../../types/client'
 
 interface Props {
-  cars: StoredCar[]
+  cars: Car[]
 }
 
 defineProps<Props>()
 
 const emit = defineEmits<{
   viewClient: [client: Client]
-  editCar: [car: StoredCar]
+  editCar: [car: Car]
 }>()
 </script>
 

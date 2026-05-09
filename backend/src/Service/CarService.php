@@ -29,6 +29,10 @@ final class CarService
                 'model' => $car->getModel(),
                 'licensePlate' => $car->getLicensePlate(),
                 'color' => $car->getColor()->getName(),
+                'registrationYear' => $car->getRegistrationYear(),
+                'registrationMonth' => $car->getRegistrationMonth(),
+                'mileage' => $car->getMileage(),
+                'isStored' => $car->isStored(),
                 'client' => $this->mapClient($car->getClient()),
             ])
             ->values()

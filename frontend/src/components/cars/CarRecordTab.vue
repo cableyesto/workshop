@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import CarRecordTable from './CarRecordTable.vue'
 import ClientFormDialog from './ClientFormDialog.vue'
 import { useAllCarsQuery } from '../../api/cars'
-import type { StoredCar } from '../../types/cars'
+import type { Car } from '../../types/cars'
 import type { Client } from '../../types/client'
 
 const { data: cars, isLoading } = useAllCarsQuery()
@@ -13,7 +13,7 @@ const isCreateDialogOpen = ref(false)
 const isClientModalOpen = ref(false)
 const isCarEditDialogOpen = ref(false)
 const selectedClient = ref<Client | null>(null)
-const selectedCar = ref<StoredCar | null>(null)
+const selectedCar = ref<Car | null>(null)
 
 function handleCreateCar() {
   isCreateDialogOpen.value = true
@@ -29,7 +29,7 @@ function handleCloseClientModal() {
   selectedClient.value = null
 }
 
-function handleEditCar(car: StoredCar) {
+function handleEditCar(car: Car) {
   selectedCar.value = car
   isCarEditDialogOpen.value = true
 }
