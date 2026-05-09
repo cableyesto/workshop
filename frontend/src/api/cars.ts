@@ -8,6 +8,17 @@ import type { Ref } from 'vue'
 // ============================================
 
 /**
+ * Fetch all cars for the current garage (Fiches tab)
+ */
+export function useAllCarsQuery() {
+  return useQuery({
+    key: ['cars'],
+    query: () => apiRequest<StoredCar[]>('/api/cars', {}, 'Failed to fetch cars'),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+/**
  * Fetch all stored cars for the current garage
  */
 export function useStoredCarsQuery() {
