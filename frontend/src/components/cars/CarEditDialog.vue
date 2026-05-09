@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
@@ -29,6 +29,7 @@ const emit = defineEmits<{
   success: []
 }>()
 
+const step = ref(1)
 const hasAttemptedSubmit = ref(false)
 
 // Watch dialog open/close
@@ -36,26 +37,30 @@ watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
+      step.value = 1
       hasAttemptedSubmit.value = false
       if (props.car) {
-        setValues({
+        setStep1Values({
           manufacturer: props.car.manufacturer,
           model: props.car.model,
           licensePlate: props.car.licensePlate,
           color: props.car.color,
+        })
+        setStep2Values({
           registrationYear: props.car.registrationYear !== null ? props.car.registrationYear : '',
           registrationMonth: props.car.registrationMonth !== null ? props.car.registrationMonth : '',
           mileage: props.car.mileage !== null ? props.car.mileage : '',
         })
       } else {
-        resetForm()
+        resetStep1Form()
+        resetStep2Form()
       }
     }
   },
 )
 
-// Validation schema
-const schema = toTypedSchema(
+// Step 1 validation schema (Car basic info)
+const step1Schema = toTypedSchema(
   z.object({
     manufacturer: z.string().min(1, 'La marque est requise'),
     model: z.string().min(1, 'Le modèle est requis'),
@@ -64,22 +69,27 @@ const schema = toTypedSchema(
       .length(9, 'La plaque doit contenir exactement 9 caractères')
       .regex(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/, 'Format invalide. Attendu: AB-123-CD'),
     color: z.string().min(1, 'La couleur est requise'),
-    registrationYear: z.union([z.coerce.number().int().min(1900).max(2100), z.literal('')]).optional(),
+  }),
+)
+
+// Step 2 validation schema (Car additional info)
+const step2Schema = toTypedSchema(
+  z.object({
+    registrationYear: z
+      .union([z.coerce.number().int().min(1900).max(2100), z.literal('')])
+      .optional(),
     registrationMonth: z.union([z.coerce.number().int().min(1).max(12), z.literal('')]).optional(),
     mileage: z.union([z.coerce.number().int().min(0), z.literal('')]).optional(),
   }),
 )
 
-const getInitialValues = () => {
+const getStep1InitialValues = () => {
   if (props.car) {
     return {
       manufacturer: props.car.manufacturer,
       model: props.car.model,
       licensePlate: props.car.licensePlate,
       color: props.car.color,
-      registrationYear: props.car.registrationYear !== null ? props.car.registrationYear : ('' as const),
-      registrationMonth: props.car.registrationMonth !== null ? props.car.registrationMonth : ('' as const),
-      mileage: props.car.mileage !== null ? props.car.mileage : ('' as const),
     }
   }
   return {
@@ -87,26 +97,60 @@ const getInitialValues = () => {
     model: '',
     licensePlate: '',
     color: '',
+  }
+}
+
+const getStep2InitialValues = () => {
+  if (props.car) {
+    return {
+      registrationYear: props.car.registrationYear !== null ? props.car.registrationYear : ('' as const),
+      registrationMonth: props.car.registrationMonth !== null ? props.car.registrationMonth : ('' as const),
+      mileage: props.car.mileage !== null ? props.car.mileage : ('' as const),
+    }
+  }
+  return {
     registrationYear: '' as const,
     registrationMonth: '' as const,
     mileage: '' as const,
   }
 }
 
-const { handleSubmit, errors, defineField, resetForm, setValues, setErrors } = useForm({
-  validationSchema: schema,
-  initialValues: getInitialValues(),
+const {
+  handleSubmit: handleStep1Submit,
+  values: step1Values,
+  errors: step1Errors,
+  defineField: defineStep1Field,
+  resetForm: resetStep1Form,
+  setValues: setStep1Values,
+  setErrors: setStep1Errors,
+} = useForm({
+  validationSchema: step1Schema,
+  initialValues: getStep1InitialValues(),
   validateOnMount: false,
 })
 
-// Fields
-const [manufacturer, manufacturerAttrs] = defineField('manufacturer')
-const [model, modelAttrs] = defineField('model')
-const [licensePlate, licensePlateAttrs] = defineField('licensePlate')
-const [color, colorAttrs] = defineField('color')
-const [registrationYear, registrationYearAttrs] = defineField('registrationYear')
-const [registrationMonth, registrationMonthAttrs] = defineField('registrationMonth')
-const [mileage, mileageAttrs] = defineField('mileage')
+const {
+  handleSubmit: handleStep2Submit,
+  errors: step2Errors,
+  defineField: defineStep2Field,
+  resetForm: resetStep2Form,
+  setValues: setStep2Values,
+} = useForm({
+  validationSchema: step2Schema,
+  initialValues: getStep2InitialValues(),
+  validateOnMount: false,
+})
+
+// Step 1 fields (Car basic)
+const [manufacturer, manufacturerAttrs] = defineStep1Field('manufacturer')
+const [model, modelAttrs] = defineStep1Field('model')
+const [licensePlate, licensePlateAttrs] = defineStep1Field('licensePlate')
+const [color, colorAttrs] = defineStep1Field('color')
+
+// Step 2 fields (Car additional)
+const [registrationYear, registrationYearAttrs] = defineStep2Field('registrationYear')
+const [registrationMonth, registrationMonthAttrs] = defineStep2Field('registrationMonth')
+const [mileage, mileageAttrs] = defineStep2Field('mileage')
 
 const { mutate: updateCar, isLoading } = useUpdateCarMutation(
   () => {
@@ -117,34 +161,58 @@ const { mutate: updateCar, isLoading } = useUpdateCarMutation(
     hasAttemptedSubmit.value = true
     // Check if error is about color validation
     if (error.message && error.message.includes('Color not found')) {
-      setErrors({
+      setStep1Errors({
         color: 'Couleur non disponible',
       })
-    } else {
-      setErrors({
-        manufacturer: error.message || 'Erreur lors de la mise à jour',
-      })
+      step.value = 1 // Go back to step 1 to show error
     }
   },
 )
 
+const dialogTitle = computed(() => {
+  if (step.value === 1) return 'Modifier la fiche voiture (1/2)'
+  return 'Modifier la fiche voiture (2/2)'
+})
+
+const dialogDescription = computed(() => {
+  if (step.value === 1) return 'Renseignez les informations de base de la voiture.'
+  return 'Renseignez les informations complémentaires (optionnel).'
+})
+
 function handleClose() {
+  step.value = 1
   emit('close')
 }
 
-const onSubmit = handleSubmit(
+function handlePrevious() {
+  if (step.value > 1) {
+    step.value -= 1
+  }
+}
+
+const onStep1Submit = handleStep1Submit(
+  () => {
+    step.value = 2
+  },
+  () => {
+    hasAttemptedSubmit.value = true
+  },
+)
+
+const onStep2Submit = handleStep2Submit(
   (vals) => {
     if (!props.car) return
 
     updateCar({
       carId: props.car.id,
       data: {
-        manufacturer: vals.manufacturer,
-        model: vals.model,
-        licensePlate: vals.licensePlate,
-        color: vals.color,
+        manufacturer: step1Values.manufacturer!,
+        model: step1Values.model!,
+        licensePlate: step1Values.licensePlate!,
+        color: step1Values.color!,
         registrationYear: typeof vals.registrationYear === 'number' ? vals.registrationYear : null,
-        registrationMonth: typeof vals.registrationMonth === 'number' ? vals.registrationMonth : null,
+        registrationMonth:
+          typeof vals.registrationMonth === 'number' ? vals.registrationMonth : null,
         mileage: typeof vals.mileage === 'number' ? vals.mileage : null,
       },
     })
@@ -172,11 +240,12 @@ function formatLicensePlate(event: Event) {
   <Dialog :open="open" @update:open="(isOpen) => !isOpen && handleClose()">
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
-        <DialogTitle>Modifier la fiche voiture</DialogTitle>
-        <DialogDescription>Modifiez les informations de la voiture</DialogDescription>
+        <DialogTitle>{{ dialogTitle }}</DialogTitle>
+        <DialogDescription>{{ dialogDescription }}</DialogDescription>
       </DialogHeader>
 
-      <form @submit="onSubmit" class="grid gap-3 py-0">
+      <!-- Step 1 Form (Car basic info) -->
+      <form v-if="step === 1" @submit="onStep1Submit" class="grid gap-3 py-0">
         <!-- Marque -->
         <FieldGroup class="gap-2">
           <FieldLabel for="manufacturer">Marque</FieldLabel>
@@ -187,8 +256,8 @@ function formatLicensePlate(event: Event) {
               v-bind="manufacturerAttrs"
               type="text"
             />
-            <FieldError v-if="hasAttemptedSubmit && errors.manufacturer">{{
-              errors.manufacturer
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.manufacturer">{{
+              step1Errors.manufacturer
             }}</FieldError>
           </Field>
         </FieldGroup>
@@ -198,7 +267,9 @@ function formatLicensePlate(event: Event) {
           <FieldLabel for="model">Modèle</FieldLabel>
           <Field>
             <Input id="model" v-model="model" v-bind="modelAttrs" type="text" />
-            <FieldError v-if="hasAttemptedSubmit && errors.model">{{ errors.model }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.model">{{
+              step1Errors.model
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -215,8 +286,8 @@ function formatLicensePlate(event: Event) {
               maxlength="9"
               @input="formatLicensePlate"
             />
-            <FieldError v-if="hasAttemptedSubmit && errors.licensePlate">{{
-              errors.licensePlate
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.licensePlate">{{
+              step1Errors.licensePlate
             }}</FieldError>
           </Field>
         </FieldGroup>
@@ -226,10 +297,20 @@ function formatLicensePlate(event: Event) {
           <FieldLabel for="color">Couleur</FieldLabel>
           <Field>
             <Input id="color" v-model="color" v-bind="colorAttrs" type="text" />
-            <FieldError v-if="hasAttemptedSubmit && errors.color">{{ errors.color }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && step1Errors.color">{{
+              step1Errors.color
+            }}</FieldError>
           </Field>
         </FieldGroup>
 
+        <DialogFooter>
+          <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
+          <Button type="submit">Suivant</Button>
+        </DialogFooter>
+      </form>
+
+      <!-- Step 2 Form (Car additional info) -->
+      <form v-if="step === 2" @submit="onStep2Submit" class="grid gap-3 py-0">
         <!-- Année d'immatriculation -->
         <FieldGroup class="gap-2">
           <FieldLabel for="registrationYear">Année d'immatriculation (optionnel)</FieldLabel>
@@ -243,8 +324,8 @@ function formatLicensePlate(event: Event) {
               max="2100"
               placeholder="2020"
             />
-            <FieldError v-if="hasAttemptedSubmit && errors.registrationYear">{{
-              errors.registrationYear
+            <FieldError v-if="hasAttemptedSubmit && step2Errors.registrationYear">{{
+              step2Errors.registrationYear
             }}</FieldError>
           </Field>
         </FieldGroup>
@@ -262,8 +343,8 @@ function formatLicensePlate(event: Event) {
               max="12"
               placeholder="6"
             />
-            <FieldError v-if="hasAttemptedSubmit && errors.registrationMonth">{{
-              errors.registrationMonth
+            <FieldError v-if="hasAttemptedSubmit && step2Errors.registrationMonth">{{
+              step2Errors.registrationMonth
             }}</FieldError>
           </Field>
         </FieldGroup>
@@ -280,14 +361,14 @@ function formatLicensePlate(event: Event) {
               min="0"
               placeholder="50000"
             />
-            <FieldError v-if="hasAttemptedSubmit && errors.mileage">{{
-              errors.mileage
+            <FieldError v-if="hasAttemptedSubmit && step2Errors.mileage">{{
+              step2Errors.mileage
             }}</FieldError>
           </Field>
         </FieldGroup>
 
         <DialogFooter>
-          <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
+          <Button type="button" variant="outline" @click="handlePrevious">Précédent</Button>
           <Button type="submit" :disabled="isLoading">
             {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
           </Button>
