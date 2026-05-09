@@ -2,10 +2,10 @@
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import CarStorageTable from './CarStorageTable.vue'
-import type { StoredCar, Client } from '../../types/cars'
+import { useStoredCarsQuery } from '../../api/cars'
+import type { Client } from '../../types/cars'
 
-// Mock data for now - will be replaced with useQuery later
-const storedCars = ref<StoredCar[]>([])
+const { data: storedCars, isLoading } = useStoredCarsQuery()
 const isStorageDialogOpen = ref(false)
 
 function handleAddCarToStorage() {
@@ -26,7 +26,11 @@ function handleViewClient(client: Client) {
       </Button>
     </div>
 
-    <div v-if="storedCars.length === 0">Chargement...</div>
-    <CarStorageTable v-else :cars="storedCars" @view-client="handleViewClient" />
+    <div v-if="isLoading">Chargement...</div>
+    <CarStorageTable
+      v-else-if="storedCars"
+      :cars="storedCars"
+      @view-client="handleViewClient"
+    />
   </div>
 </template>
