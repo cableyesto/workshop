@@ -39,4 +39,24 @@ final class CarRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find all cars with interventions for a specific garage
+     *
+     * @return Car[]
+     */
+    public function findCarsWithInterventions(int $garageId): array
+    {
+        return $this->createQueryBuilder('car')
+            ->select('car', 'color', 'client', 'interventions')
+            ->join('car.color', 'color')
+            ->join('car.client', 'client')
+            ->join('car.interventions', 'interventions')
+            ->join('interventions.mechanics', 'mechanic')
+            ->join('mechanic.garages', 'garage')
+            ->where('garage.id = :garageId')
+            ->setParameter('garageId', $garageId)
+            ->getQuery()
+            ->getResult();
+    }
 }

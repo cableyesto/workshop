@@ -28,7 +28,8 @@ const statusLabels: Record<string, string> = {
 </script>
 
 <template>
-  <div class="rounded-md border">
+  <!-- <div class="rounded-md border"> -->
+  <div>
     <Table>
       <TableHeader>
         <TableRow>
@@ -53,6 +54,7 @@ const statusLabels: Record<string, string> = {
               @click="emit('viewClient', car.client)"
             >
               {{ car.client.lastName }}
+              {{ car.client.firstName }}
             </button>
           </TableCell>
         </TableRow>

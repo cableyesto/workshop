@@ -34,4 +34,17 @@ final class CarController extends AbstractAuthenticatedController
 
         return $this->json($cars);
     }
+
+    #[Route('/api/cars/interventions', name: 'api_cars_interventions', methods: ['GET'])]
+    public function interventions(): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $cars = $this->carService->getCarsWithInterventions($garageId);
+
+        return $this->json($cars);
+    }
 }
