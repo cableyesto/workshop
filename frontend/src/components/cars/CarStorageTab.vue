@@ -2,19 +2,27 @@
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import CarStorageTable from './CarStorageTable.vue'
+import ClientInfoModal from './ClientInfoModal.vue'
 import { useStoredCarsQuery } from '../../api/cars'
 import type { Client } from '../../types/cars'
 
 const { data: storedCars, isLoading } = useStoredCarsQuery()
 const isStorageDialogOpen = ref(false)
+const isClientInfoModalOpen = ref(false)
+const selectedClient = ref<Client | null>(null)
 
 function handleAddCarToStorage() {
   isStorageDialogOpen.value = true
 }
 
 function handleViewClient(client: Client) {
-  // TODO: Open ClientInfoModal
-  console.log('View client:', client)
+  selectedClient.value = client
+  isClientInfoModalOpen.value = true
+}
+
+function handleCloseClientInfo() {
+  isClientInfoModalOpen.value = false
+  selectedClient.value = null
 }
 </script>
 
@@ -31,6 +39,12 @@ function handleViewClient(client: Client) {
       v-else-if="storedCars"
       :cars="storedCars"
       @view-client="handleViewClient"
+    />
+
+    <ClientInfoModal
+      :open="isClientInfoModalOpen"
+      :client="selectedClient"
+      @close="handleCloseClientInfo"
     />
   </div>
 </template>

@@ -47,6 +47,7 @@ function handleViewClient(client: Client) {
             class="text-blue-600 hover:underline focus:outline-none"
           >
             {{ car.client.lastName }}
+            {{ car.client.firstName }}
           </button>
         </TableCell>
       </TableRow>
