@@ -19,6 +19,26 @@ final class CarRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find all cars for a specific garage
+     *
+     * @return Car[]
+     */
+    public function findAllForGarage(int $garageId): array
+    {
+        return $this->createQueryBuilder('car')
+            ->select('car', 'color', 'client')
+            ->join('car.color', 'color')
+            ->join('car.client', 'client')
+            ->join('car.interventions', 'intervention')
+            ->join('intervention.mechanics', 'mechanic')
+            ->join('mechanic.garages', 'garage')
+            ->where('garage.id = :garageId')
+            ->setParameter('garageId', $garageId)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Find all stored cars for a specific garage
      *
      * @return Car[]

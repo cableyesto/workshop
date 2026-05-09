@@ -16,6 +16,26 @@ final class CarService
     }
 
     /**
+     * Get all cars for a specific garage
+     */
+    public function getAllCars(int $garageId): array
+    {
+        $cars = $this->carRepository->findAllForGarage($garageId);
+
+        return Collection::make($cars)
+            ->map(fn($car) => [
+                'id' => $car->getId(),
+                'manufacturer' => $car->getManufacturer(),
+                'model' => $car->getModel(),
+                'licensePlate' => $car->getLicensePlate(),
+                'color' => $car->getColor()->getName(),
+                'client' => $this->mapClient($car->getClient()),
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    /**
      * Get all stored cars for a specific garage
      */
     public function getStoredCars(int $garageId): array

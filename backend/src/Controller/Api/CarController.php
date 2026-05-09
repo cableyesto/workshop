@@ -23,6 +23,19 @@ final class CarController extends AbstractAuthenticatedController
         parent::__construct($tokenStorage, $jwtManager, $logger);
     }
 
+    #[Route('/api/cars', name: 'api_cars_index', methods: ['GET'])]
+    public function index(): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $cars = $this->carService->getAllCars($garageId);
+
+        return $this->json($cars);
+    }
+
     #[Route('/api/cars/storage', name: 'api_cars_storage', methods: ['GET'])]
     public function storage(): JsonResponse
     {

@@ -53,7 +53,7 @@ const emit = defineEmits<{
               class="text-blue-600 hover:underline cursor-pointer"
               @click="emit('editCar', car)"
             >
-              Modifier
+              Actualiser
             </button>
           </TableCell>
         </TableRow>
