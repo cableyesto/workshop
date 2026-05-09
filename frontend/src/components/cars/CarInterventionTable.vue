@@ -20,10 +20,10 @@ const emit = defineEmits<{
 }>()
 
 const statusLabels: Record<string, string> = {
-  affectee: 'Affectée',
-  en_cours: 'En cours',
-  en_pause: 'En pause',
-  terminee: 'Terminée',
+  affectee: '🏷️ Affectée',
+  en_cours: '⏳ En cours',
+  en_pause: '⏸️ En pause',
+  terminee: '✅ Terminée',
 }
 </script>
 
