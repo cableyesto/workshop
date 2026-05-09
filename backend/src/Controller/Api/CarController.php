@@ -125,6 +125,91 @@ final class CarController extends AbstractAuthenticatedController
         }
     }
 
+    #[Route('/api/cars/with-client', name: 'api_cars_create_with_client', methods: ['POST'])]
+    public function createWithClient(Request $request): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $this->logger->info('Create car with client request', [
+            'garage_id' => $garageId,
+        ]);
+
+        // Validate required client fields
+        if (
+            !isset($data['client']['firstName']) ||
+            !isset($data['client']['lastName']) ||
+            !isset($data['client']['phone'])
+        ) {
+            $this->logger->warning('Missing required client fields', [
+                'garage_id' => $garageId,
+                'data' => $data,
+            ]);
+
+            return $this->json(['error' => 'Missing required client fields'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Validate required car fields
+        if (
+            !isset($data['car']['manufacturer']) ||
+            !isset($data['car']['model']) ||
+            !isset($data['car']['licensePlate']) ||
+            !isset($data['car']['color'])
+        ) {
+            $this->logger->warning('Missing required car fields', [
+                'garage_id' => $garageId,
+                'data' => $data,
+            ]);
+
+            return $this->json(['error' => 'Missing required car fields'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $car = $this->carService->createCarWithClient(
+                $data['client']['firstName'],
+                $data['client']['lastName'],
+                $data['client']['email'] ?? null,
+                $data['client']['phone'],
+                $data['car']['manufacturer'],
+                $data['car']['model'],
+                $data['car']['licensePlate'],
+                $data['car']['color'],
+                $data['car']['registrationYear'] ?? null,
+                $data['car']['registrationMonth'] ?? null,
+                $data['car']['mileage'] ?? null,
+            );
+
+            $this->logger->info('Car with client created successfully', [
+                'garage_id' => $garageId,
+                'car_id' => $car['id'],
+                'client_id' => $car['client']['id'],
+            ]);
+
+            return $this->json([
+                'success' => true,
+                'car' => $car,
+            ], JsonResponse::HTTP_CREATED);
+        } catch (\RuntimeException $e) {
+            $this->logger->error('Error creating car with client', [
+                'garage_id' => $garageId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error creating car with client', [
+                'garage_id' => $garageId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json(['error' => 'An error occurred while creating the car'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     #[Route('/api/cars/{id}', name: 'api_cars_update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {

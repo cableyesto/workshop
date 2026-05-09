@@ -126,6 +126,33 @@ export async function updateCarAPI(
   )
 }
 
+export async function createCarWithClientAPI(data: {
+  client: {
+    firstName: string
+    lastName: string
+    email: string | null
+    phone: string
+  }
+  car: {
+    manufacturer: string
+    model: string
+    licensePlate: string
+    color: string
+    registrationYear: number | null
+    registrationMonth: number | null
+    mileage: number | null
+  }
+}): Promise<void> {
+  return apiRequest<void>(
+    '/api/cars/with-client',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+    'Failed to create car',
+  )
+}
+
 // ============================================
 // MUTATIONS
 // ============================================
@@ -212,6 +239,41 @@ export function useUpdateCarMutation(
         mileage: number | null
       }
     }) => updateCarAPI(carId, data),
+    onSuccess: () => {
+      queryCache.invalidateQueries({ key: ['cars'] })
+      onSuccessCallback()
+    },
+    onError: (error) => {
+      onErrorCallback(error)
+    },
+  })
+}
+
+export function useCreateCarWithClientMutation(
+  onSuccessCallback: () => void,
+  onErrorCallback: (error: Error) => void,
+) {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    key: ['create-car-with-client'],
+    mutation: (data: {
+      client: {
+        firstName: string
+        lastName: string
+        email: string | null
+        phone: string
+      }
+      car: {
+        manufacturer: string
+        model: string
+        licensePlate: string
+        color: string
+        registrationYear: number | null
+        registrationMonth: number | null
+        mileage: number | null
+      }
+    }) => createCarWithClientAPI(data),
     onSuccess: () => {
       queryCache.invalidateQueries({ key: ['cars'] })
       onSuccessCallback()

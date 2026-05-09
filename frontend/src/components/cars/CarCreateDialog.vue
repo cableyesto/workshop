@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
+import { useCreateCarWithClientMutation } from '../../api/cars'
 import {
   Dialog,
   DialogContent,
@@ -52,7 +53,7 @@ const step1Schema = toTypedSchema(
     phone: z
       .string()
       .min(1, 'Le téléphone est requis')
-      .regex(/^[0-9\s\-\+\(\)\.]+$/, 'Format de téléphone invalide'),
+      .regex(/^[0-9\s\-+().]+$/, 'Format de téléphone invalide'),
   }),
 )
 
@@ -72,7 +73,9 @@ const step2Schema = toTypedSchema(
 // Step 3 validation schema (Car additional info)
 const step3Schema = toTypedSchema(
   z.object({
-    registrationYear: z.union([z.coerce.number().int().min(1900).max(2100), z.literal('')]).optional(),
+    registrationYear: z
+      .union([z.coerce.number().int().min(1900).max(2100), z.literal('')])
+      .optional(),
     registrationMonth: z.union([z.coerce.number().int().min(1).max(12), z.literal('')]).optional(),
     mileage: z.union([z.coerce.number().int().min(0), z.literal('')]).optional(),
   }),
@@ -116,6 +119,7 @@ const {
   errors: step2Errors,
   defineField: defineStep2Field,
   resetForm: resetStep2Form,
+  setErrors: setStep2Errors,
 } = useForm({
   validationSchema: step2Schema,
   initialValues: getStep2InitialValues(),
@@ -150,6 +154,23 @@ const [color, colorAttrs] = defineStep2Field('color')
 const [registrationYear, registrationYearAttrs] = defineStep3Field('registrationYear')
 const [registrationMonth, registrationMonthAttrs] = defineStep3Field('registrationMonth')
 const [mileage, mileageAttrs] = defineStep3Field('mileage')
+
+const { mutate: createCarWithClient, isLoading } = useCreateCarWithClientMutation(
+  () => {
+    emit('success')
+    emit('close')
+  },
+  (error) => {
+    hasAttemptedSubmit.value = true
+    // Check if error is about color validation
+    if (error.message && error.message.includes('Color not found')) {
+      setStep2Errors({
+        color: 'Couleur non disponible',
+      })
+      step.value = 2 // Go back to step 2 to show error
+    }
+  },
+)
 
 const dialogTitle = computed(() => {
   if (step.value === 1) return 'Créer une fiche voiture (1/3)'
@@ -194,27 +215,24 @@ const onStep2Submit = handleStep2Submit(
 
 const onStep3Submit = handleStep3Submit(
   (vals) => {
-    // TODO: Call mutation to create client + car
-    console.log('Create car with client:', {
+    createCarWithClient({
       client: {
-        firstName: step1Values.firstName,
-        lastName: step1Values.lastName,
+        firstName: step1Values.firstName!,
+        lastName: step1Values.lastName!,
         email: step1Values.email || null,
-        phone: step1Values.phone,
+        phone: step1Values.phone!,
       },
       car: {
-        manufacturer: step2Values.manufacturer,
-        model: step2Values.model,
-        licensePlate: step2Values.licensePlate,
-        color: step2Values.color,
+        manufacturer: step2Values.manufacturer!,
+        model: step2Values.model!,
+        licensePlate: step2Values.licensePlate!,
+        color: step2Values.color!,
         registrationYear: typeof vals.registrationYear === 'number' ? vals.registrationYear : null,
-        registrationMonth: typeof vals.registrationMonth === 'number' ? vals.registrationMonth : null,
+        registrationMonth:
+          typeof vals.registrationMonth === 'number' ? vals.registrationMonth : null,
         mileage: typeof vals.mileage === 'number' ? vals.mileage : null,
       },
     })
-
-    emit('success')
-    emit('close')
   },
   () => {
     hasAttemptedSubmit.value = true
@@ -301,7 +319,12 @@ function formatLicensePlate(event: Event) {
         <FieldGroup class="gap-2">
           <FieldLabel for="manufacturer">Marque</FieldLabel>
           <Field>
-            <Input id="manufacturer" v-model="manufacturer" v-bind="manufacturerAttrs" type="text" />
+            <Input
+              id="manufacturer"
+              v-model="manufacturer"
+              v-bind="manufacturerAttrs"
+              type="text"
+            />
             <FieldError v-if="hasAttemptedSubmit && step2Errors.manufacturer">{{
               step2Errors.manufacturer
             }}</FieldError>
@@ -415,7 +438,9 @@ function formatLicensePlate(event: Event) {
 
         <DialogFooter>
           <Button type="button" variant="outline" @click="handlePrevious">Précédent</Button>
-          <Button type="submit">Créer</Button>
+          <Button type="submit" :disabled="isLoading">
+            {{ isLoading ? 'Création...' : 'Créer' }}
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

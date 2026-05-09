@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\Car;
+use App\Entity\Client;
 use App\Enum\InterventionStatus;
 use App\Repository\CarRepository;
+use App\Repository\ClientRepository;
 use App\Repository\ColorRepository;
 use Illuminate\Support\Collection;
 
@@ -14,6 +17,7 @@ final class CarService
     public function __construct(
         private readonly CarRepository $carRepository,
         private readonly ColorRepository $colorRepository,
+        private readonly ClientRepository $clientRepository,
     ) {
     }
 
@@ -217,5 +221,86 @@ final class CarService
             ->setMileage($mileage);
 
         $this->carRepository->getEntityManager()->flush();
+    }
+
+    /**
+     * Create a new car with a new client
+     */
+    public function createCarWithClient(
+        string $clientFirstName,
+        string $clientLastName,
+        ?string $clientEmail,
+        string $clientPhone,
+        string $carManufacturer,
+        string $carModel,
+        string $carLicensePlate,
+        string $carColorName,
+        ?int $carRegistrationYear,
+        ?int $carRegistrationMonth,
+        ?int $carMileage,
+    ): array {
+        $em = $this->carRepository->getEntityManager();
+
+        try {
+            $em->beginTransaction();
+
+            // Validate and fetch color entity
+            $color = $this->colorRepository->findOneBy(['name' => $carColorName]);
+            if (!$color) {
+                throw new \RuntimeException('Color not found. Please use a valid color from the database.');
+            }
+
+            // Create client
+            $client = new Client();
+            $client
+                ->setFirstName($clientFirstName)
+                ->setLastName($clientLastName)
+                ->setEmail($clientEmail)
+                ->setPhoneNumber($clientPhone)
+                ->setIsClientCalledBack(false);
+
+            $em->persist($client);
+
+            // Create car
+            $car = new Car();
+            $car
+                ->setManufacturer($carManufacturer)
+                ->setModel($carModel)
+                ->setLicensePlate($carLicensePlate)
+                ->setColor($color)
+                ->setRegistrationYear($carRegistrationYear)
+                ->setRegistrationMonth($carRegistrationMonth)
+                ->setMileage($carMileage)
+                ->setIsStored(false)
+                ->setClient($client);
+
+            $em->persist($car);
+            $em->flush();
+            $em->commit();
+
+            // Return created car data
+            return [
+                'id' => $car->getId(),
+                'manufacturer' => $car->getManufacturer(),
+                'model' => $car->getModel(),
+                'licensePlate' => $car->getLicensePlate(),
+                'color' => $car->getColor()->getName(),
+                'registrationYear' => $car->getRegistrationYear(),
+                'registrationMonth' => $car->getRegistrationMonth(),
+                'mileage' => $car->getMileage(),
+                'isStored' => $car->isStored(),
+                'client' => [
+                    'id' => $client->getId(),
+                    'firstName' => $client->getFirstName(),
+                    'lastName' => $client->getLastName(),
+                    'email' => $client->getEmail(),
+                    'phone' => $client->getPhoneNumber(),
+                    'isClientCalledBack' => $client->isClientCalledBack(),
+                ],
+            ];
+        } catch (\Exception $e) {
+            $em->rollback();
+            throw $e;
+        }
     }
 }
