@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import CarInterventionTable from './CarInterventionTable.vue'
 import ClientInfoModal from './ClientInfoModal.vue'
 import { useInterventionCarsQuery } from '../../api/cars'
-import type { Client } from '../../types/cars'
+import type { Client } from '../../types/client'
 
 const { data: interventionCars, isLoading } = useInterventionCarsQuery()
 const queryCache = useQueryCache()

@@ -1,11 +1,4 @@
-export interface Client {
-  id: number
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
-  isClientCalledBack: boolean
-}
+import type { Client } from './client'
 
 export interface StoredCar {
   id: number

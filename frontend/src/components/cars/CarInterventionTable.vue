@@ -7,7 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { CarWithIntervention, Client } from '../../types/cars'
+import type { CarWithIntervention } from '../../types/cars'
+import type { Client } from '../../types/client'
 
 interface Props {
   cars: CarWithIntervention[]

@@ -5,7 +5,7 @@ import CarStorageTable from './CarStorageTable.vue'
 import CarStorageDialog from './CarStorageDialog.vue'
 import ClientInfoModal from './ClientInfoModal.vue'
 import { useStoredCarsQuery } from '../../api/cars'
-import type { Client } from '../../types/cars'
+import type { Client } from '../../types/client'
 
 const { data: storedCars, isLoading } = useStoredCarsQuery()
 const isStorageDialogOpen = ref(false)

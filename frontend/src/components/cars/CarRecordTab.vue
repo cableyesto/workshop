@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import CarRecordTable from './CarRecordTable.vue'
 import ClientFormDialog from './ClientFormDialog.vue'
 import { useAllCarsQuery } from '../../api/cars'
-import type { Client, StoredCar } from '../../types/cars'
+import type { StoredCar } from '../../types/cars'
+import type { Client } from '../../types/client'
 
 const { data: cars, isLoading } = useAllCarsQuery()
 

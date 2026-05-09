@@ -10,7 +10,7 @@ import {
   usePatchClientCalledBackMutation,
   useRemoveCarFromStorageMutation,
 } from '../../api/cars'
-import type { Client } from '../../types/cars'
+import type { Client } from '../../types/client'
 
 const { data: restitutionCars, isLoading } = useRestitutionCarsQuery()
 

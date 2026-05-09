@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import type { Client } from '../../types/cars'
+import type { Client } from '../../types/client'
 
 interface Props {
   open: boolean
