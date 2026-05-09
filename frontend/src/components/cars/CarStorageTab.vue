@@ -16,12 +16,6 @@ function handleAddCarToStorage() {
   isStorageDialogOpen.value = true
 }
 
-function handleStorageSubmit(data: { licensePlate: string; isStored: boolean }) {
-  console.log('Add car to storage:', data)
-  // TODO: Create mutation to add car
-  isStorageDialogOpen.value = false
-}
-
 function handleViewClient(client: Client) {
   selectedClient.value = client
   isClientInfoModalOpen.value = true
@@ -48,11 +42,7 @@ function handleCloseClientInfo() {
       @view-client="handleViewClient"
     />
 
-    <CarStorageDialog
-      :open="isStorageDialogOpen"
-      @close="isStorageDialogOpen = false"
-      @submit="handleStorageSubmit"
-    />
+    <CarStorageDialog :open="isStorageDialogOpen" @close="isStorageDialogOpen = false" />
 
     <ClientInfoModal
       :open="isClientInfoModalOpen"

@@ -79,6 +79,20 @@ export async function removeCarFromStorageAPI(carId: number): Promise<void> {
   )
 }
 
+export async function updateCarStorageByLicensePlateAPI(
+  licensePlate: string,
+  isStored: boolean,
+): Promise<void> {
+  return apiRequest<void>(
+    '/api/cars/license-plate',
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ licensePlate, isStored }),
+    },
+    'Failed to update car storage',
+  )
+}
+
 // ============================================
 // MUTATIONS
 // ============================================
@@ -118,6 +132,26 @@ export function useRemoveCarFromStorageMutation() {
     onError: (error) => {
       console.error('Error removing car from storage:', error)
       alert(`Erreur: ${error.message}`)
+    },
+  })
+}
+
+export function useUpdateCarStorageByLicensePlateMutation(
+  onSuccessCallback: () => void,
+  onErrorCallback: (error: Error) => void,
+) {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    key: ['update-car-storage-by-license-plate'],
+    mutation: ({ licensePlate, isStored }: { licensePlate: string; isStored: boolean }) =>
+      updateCarStorageByLicensePlateAPI(licensePlate, isStored),
+    onSuccess: () => {
+      queryCache.invalidateQueries({ key: ['cars', 'storage'], exact: true })
+      onSuccessCallback()
+    },
+    onError: (error) => {
+      onErrorCallback(error)
     },
   })
 }
