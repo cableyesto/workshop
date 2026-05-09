@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import CarRecordTable from './CarRecordTable.vue'
-import ClientInfoModal from './ClientInfoModal.vue'
+import ClientFormDialog from './ClientFormDialog.vue'
 import { useAllCarsQuery } from '../../api/cars'
 import type { Client, StoredCar } from '../../types/cars'
 
@@ -50,10 +50,11 @@ function handleEditCar(car: StoredCar) {
       @edit-car="handleEditCar"
     />
 
-    <ClientInfoModal
+    <ClientFormDialog
       :open="isClientModalOpen"
       :client="selectedClient"
       @close="handleCloseClientModal"
+      @success="handleCloseClientModal"
     />
 
     <!-- TODO: CarCreateDialog -->
