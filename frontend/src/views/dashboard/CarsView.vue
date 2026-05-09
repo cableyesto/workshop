@@ -1,9 +1,38 @@
 <script setup lang="ts">
-// Configuration dashboard view
+import { ref } from 'vue'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import CarStorageTab from '../../components/cars/CarStorageTab.vue'
+
+const activeTab = ref<'fiches' | 'depot' | 'intervention' | 'restitution'>('depot')
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col gap-6">
     <h1 class="text-3xl font-bold">Voitures</h1>
+
+    <Tabs v-model="activeTab" default-value="depot" class="w-full">
+      <TabsList>
+        <TabsTrigger value="fiches">Fiches</TabsTrigger>
+        <TabsTrigger value="depot">Dépôt</TabsTrigger>
+        <TabsTrigger value="intervention">Intervention</TabsTrigger>
+        <TabsTrigger value="restitution">Restitution</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="fiches">
+        <div>Fiches tab - À implémenter</div>
+      </TabsContent>
+
+      <TabsContent value="depot">
+        <CarStorageTab />
+      </TabsContent>
+
+      <TabsContent value="intervention">
+        <div>Intervention tab - À implémenter</div>
+      </TabsContent>
+
+      <TabsContent value="restitution">
+        <div>Restitution tab - À implémenter</div>
+      </TabsContent>
+    </Tabs>
   </div>
 </template>
