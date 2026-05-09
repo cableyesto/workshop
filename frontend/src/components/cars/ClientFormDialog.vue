@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
-import { useForm, Field as VeeField } from 'vee-validate'
+import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { useUpdateClientMutation } from '../../api/clients'
 import {
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
+import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
 import type { Client } from '../../types/client'
 
 interface Props {
@@ -29,138 +29,154 @@ const emit = defineEmits<{
   success: []
 }>()
 
+const hasAttemptedSubmit = ref(false)
+
+// Watch dialog open/close
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      hasAttemptedSubmit.value = false
+      if (props.client) {
+        setValues({
+          lastName: props.client.lastName,
+          firstName: props.client.firstName,
+          email: props.client.email || '',
+          phone: props.client.phone,
+        })
+      } else {
+        resetForm()
+      }
+    }
+  },
+)
+
+// Validation schema
 const schema = toTypedSchema(
   z.object({
-    firstName: z.string().min(1, 'Le prénom est requis'),
     lastName: z.string().min(1, 'Le nom est requis'),
-    email: z.string().email('Email invalide').nullable().or(z.literal('')),
+    firstName: z.string().min(1, 'Le prénom est requis'),
+    email: z.string().email('Email invalide').or(z.literal('')),
     phone: z.string().min(1, 'Le téléphone est requis'),
   }),
 )
 
-const { handleSubmit, resetForm, setErrors, setValues } = useForm({
-  validationSchema: schema,
-  validateOnMount: false,
-  initialValues: {
-    firstName: '',
+const getInitialValues = () => {
+  if (props.client) {
+    return {
+      lastName: props.client.lastName,
+      firstName: props.client.firstName,
+      email: props.client.email || '',
+      phone: props.client.phone,
+    }
+  }
+  return {
     lastName: '',
+    firstName: '',
     email: '',
     phone: '',
-  },
+  }
+}
+
+const { handleSubmit, errors, defineField, resetForm, setValues } = useForm({
+  validationSchema: schema,
+  initialValues: getInitialValues(),
+  validateOnMount: false,
 })
 
-const { mutate: updateClient, isPending } = useUpdateClientMutation(
+// Fields
+const [lastName, lastNameAttrs] = defineField('lastName')
+const [firstName, firstNameAttrs] = defineField('firstName')
+const [email, emailAttrs] = defineField('email')
+const [phone, phoneAttrs] = defineField('phone')
+
+const { mutate: updateClient, isLoading } = useUpdateClientMutation(
   () => {
     emit('success')
     emit('close')
   },
   (error) => {
-    setErrors({
-      firstName: error.message || 'Erreur lors de la mise à jour',
+    hasAttemptedSubmit.value = true
+  },
+)
+
+function handleClose() {
+  emit('close')
+}
+
+const onSubmit = handleSubmit(
+  (vals) => {
+    if (!props.client) return
+
+    updateClient({
+      clientId: props.client.id,
+      data: {
+        firstName: vals.firstName,
+        lastName: vals.lastName,
+        email: vals.email || null,
+        phone: vals.phone,
+      },
     })
   },
-)
-
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (isOpen && props.client) {
-      setValues({
-        firstName: props.client.firstName,
-        lastName: props.client.lastName,
-        email: props.client.email || '',
-        phone: props.client.phone,
-      })
-    } else {
-      resetForm()
-    }
+  () => {
+    hasAttemptedSubmit.value = true
   },
 )
-
-const onSubmit = handleSubmit((formValues) => {
-  if (!props.client) return
-
-  updateClient({
-    clientId: props.client.id,
-    data: {
-      firstName: formValues.firstName,
-      lastName: formValues.lastName,
-      email: formValues.email || null,
-      phone: formValues.phone,
-    },
-  })
-})
-
-function handleCancel() {
-  emit('close')
-  resetForm()
-}
 </script>
 
 <template>
-  <Dialog :open="open" @update:open="(val) => !val && handleCancel()">
+  <Dialog :open="open" @update:open="(isOpen) => !isOpen && handleClose()">
     <DialogContent class="sm:max-w-[500px]">
-      <form @submit="onSubmit">
-        <DialogHeader>
-          <DialogTitle>Modifier le client</DialogTitle>
-          <DialogDescription>Modifiez les informations du client</DialogDescription>
-        </DialogHeader>
+      <DialogHeader>
+        <DialogTitle>Modifier le client</DialogTitle>
+        <DialogDescription>Modifiez les informations du client</DialogDescription>
+      </DialogHeader>
 
-        <div class="space-y-4 py-4">
-          <VeeField v-slot="{ field, errors }" name="lastName">
-            <Field :data-invalid="!!errors.length">
-              <FieldLabel for="lastName">Nom</FieldLabel>
-              <Input
-                id="lastName"
-                v-bind="field"
-                :aria-invalid="!!errors.length"
-              />
-              <FieldError v-if="errors.length" :errors="errors" />
-            </Field>
-          </VeeField>
+      <form @submit="onSubmit" class="grid gap-3 py-0">
+        <!-- Nom -->
+        <FieldGroup class="gap-2">
+          <FieldLabel for="lastName">Nom</FieldLabel>
+          <Field>
+            <Input id="lastName" v-model="lastName" v-bind="lastNameAttrs" type="text" />
+            <FieldError v-if="hasAttemptedSubmit && errors.lastName">{{
+              errors.lastName
+            }}</FieldError>
+          </Field>
+        </FieldGroup>
 
-          <VeeField v-slot="{ field, errors }" name="firstName">
-            <Field :data-invalid="!!errors.length">
-              <FieldLabel for="firstName">Prénom</FieldLabel>
-              <Input
-                id="firstName"
-                v-bind="field"
-                :aria-invalid="!!errors.length"
-              />
-              <FieldError v-if="errors.length" :errors="errors" />
-            </Field>
-          </VeeField>
+        <!-- Prénom -->
+        <FieldGroup class="gap-2">
+          <FieldLabel for="firstName">Prénom</FieldLabel>
+          <Field>
+            <Input id="firstName" v-model="firstName" v-bind="firstNameAttrs" type="text" />
+            <FieldError v-if="hasAttemptedSubmit && errors.firstName">{{
+              errors.firstName
+            }}</FieldError>
+          </Field>
+        </FieldGroup>
 
-          <VeeField v-slot="{ field, errors }" name="email">
-            <Field :data-invalid="!!errors.length">
-              <FieldLabel for="email">Email</FieldLabel>
-              <Input
-                id="email"
-                type="email"
-                v-bind="field"
-                :aria-invalid="!!errors.length"
-              />
-              <FieldError v-if="errors.length" :errors="errors" />
-            </Field>
-          </VeeField>
+        <!-- Email -->
+        <FieldGroup class="gap-2">
+          <FieldLabel for="email">Email</FieldLabel>
+          <Field>
+            <Input id="email" v-model="email" v-bind="emailAttrs" type="email" />
+            <FieldError v-if="hasAttemptedSubmit && errors.email">{{ errors.email }}</FieldError>
+          </Field>
+        </FieldGroup>
 
-          <VeeField v-slot="{ field, errors }" name="phone">
-            <Field :data-invalid="!!errors.length">
-              <FieldLabel for="phone">Téléphone</FieldLabel>
-              <Input
-                id="phone"
-                v-bind="field"
-                :aria-invalid="!!errors.length"
-              />
-              <FieldError v-if="errors.length" :errors="errors" />
-            </Field>
-          </VeeField>
-        </div>
+        <!-- Téléphone -->
+        <FieldGroup class="gap-2">
+          <FieldLabel for="phone">Téléphone</FieldLabel>
+          <Field>
+            <Input id="phone" v-model="phone" v-bind="phoneAttrs" type="text" />
+            <FieldError v-if="hasAttemptedSubmit && errors.phone">{{ errors.phone }}</FieldError>
+          </Field>
+        </FieldGroup>
 
         <DialogFooter>
-          <Button type="button" variant="outline" @click="handleCancel">Annuler</Button>
-          <Button type="submit" :disabled="isPending">
-            {{ isPending ? 'Enregistrement...' : 'Enregistrer' }}
+          <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
+          <Button type="submit" :disabled="isLoading">
+            {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
           </Button>
         </DialogFooter>
       </form>
