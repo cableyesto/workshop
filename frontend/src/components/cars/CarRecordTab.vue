@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import CarRecordTable from './CarRecordTable.vue'
 import ClientFormDialog from './ClientFormDialog.vue'
+import CarEditDialog from './CarEditDialog.vue'
 import { useAllCarsQuery } from '../../api/cars'
 import type { Car } from '../../types/cars'
 import type { Client } from '../../types/client'
@@ -33,6 +34,11 @@ function handleEditCar(car: Car) {
   selectedCar.value = car
   isCarEditDialogOpen.value = true
 }
+
+function handleCloseCarEditDialog() {
+  isCarEditDialogOpen.value = false
+  selectedCar.value = null
+}
 </script>
 
 <template>
@@ -58,7 +64,13 @@ function handleEditCar(car: Car) {
       @success="handleCloseClientModal"
     />
 
+    <CarEditDialog
+      :open="isCarEditDialogOpen"
+      :car="selectedCar"
+      @close="handleCloseCarEditDialog"
+      @success="handleCloseCarEditDialog"
+    />
+
     <!-- TODO: CarCreateDialog -->
-    <!-- TODO: CarEditDialog -->
   </div>
 </template>

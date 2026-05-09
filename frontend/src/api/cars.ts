@@ -104,6 +104,28 @@ export async function updateCarStorageByLicensePlateAPI(
   )
 }
 
+export async function updateCarAPI(
+  carId: number,
+  data: {
+    manufacturer: string
+    model: string
+    licensePlate: string
+    color: string
+    registrationYear: number | null
+    registrationMonth: number | null
+    mileage: number | null
+  },
+): Promise<void> {
+  return apiRequest<void>(
+    `/api/cars/${carId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    },
+    'Failed to update car',
+  )
+}
+
 // ============================================
 // MUTATIONS
 // ============================================
@@ -159,6 +181,39 @@ export function useUpdateCarStorageByLicensePlateMutation(
       updateCarStorageByLicensePlateAPI(licensePlate, isStored),
     onSuccess: () => {
       queryCache.invalidateQueries({ key: ['cars', 'storage'], exact: true })
+      onSuccessCallback()
+    },
+    onError: (error) => {
+      onErrorCallback(error)
+    },
+  })
+}
+
+export function useUpdateCarMutation(
+  onSuccessCallback: () => void,
+  onErrorCallback: (error: Error) => void,
+) {
+  const queryCache = useQueryCache()
+
+  return useMutation({
+    key: ['update-car'],
+    mutation: ({
+      carId,
+      data,
+    }: {
+      carId: number
+      data: {
+        manufacturer: string
+        model: string
+        licensePlate: string
+        color: string
+        registrationYear: number | null
+        registrationMonth: number | null
+        mileage: number | null
+      }
+    }) => updateCarAPI(carId, data),
+    onSuccess: () => {
+      queryCache.invalidateQueries({ key: ['cars'] })
       onSuccessCallback()
     },
     onError: (error) => {
