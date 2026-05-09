@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import CarStorageTab from '../../components/cars/CarStorageTab.vue'
+import CarInterventionTab from '../../components/cars/CarInterventionTab.vue'
 
 const activeTab = ref<'fiches' | 'depot' | 'intervention' | 'restitution'>('depot')
 </script>
@@ -27,7 +28,7 @@ const activeTab = ref<'fiches' | 'depot' | 'intervention' | 'restitution'>('depo
       </TabsContent>
 
       <TabsContent value="intervention">
-        <div>Intervention tab - À implémenter</div>
+        <CarInterventionTab />
       </TabsContent>
 
       <TabsContent value="restitution">
