@@ -43,9 +43,9 @@ watch(
           model: props.car.model,
           licensePlate: props.car.licensePlate,
           color: props.car.color,
-          registrationYear: props.car.registrationYear?.toString() || '',
-          registrationMonth: props.car.registrationMonth?.toString() || '',
-          mileage: props.car.mileage?.toString() || '',
+          registrationYear: props.car.registrationYear ?? '',
+          registrationMonth: props.car.registrationMonth ?? '',
+          mileage: props.car.mileage ?? '',
         })
       } else {
         resetForm()
@@ -64,9 +64,9 @@ const schema = toTypedSchema(
       .length(9, 'La plaque doit contenir exactement 9 caractères')
       .regex(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/, 'Format invalide. Attendu: AB-123-CD'),
     color: z.string().min(1, 'La couleur est requise'),
-    registrationYear: z.string().optional(),
-    registrationMonth: z.string().optional(),
-    mileage: z.string().optional(),
+    registrationYear: z.coerce.number().int().min(1900).max(2100).nullable().optional().or(z.literal('')),
+    registrationMonth: z.coerce.number().int().min(1).max(12).nullable().optional().or(z.literal('')),
+    mileage: z.coerce.number().int().min(0).nullable().optional().or(z.literal('')),
   }),
 )
 
@@ -77,9 +77,9 @@ const getInitialValues = () => {
       model: props.car.model,
       licensePlate: props.car.licensePlate,
       color: props.car.color,
-      registrationYear: props.car.registrationYear?.toString() || '',
-      registrationMonth: props.car.registrationMonth?.toString() || '',
-      mileage: props.car.mileage?.toString() || '',
+      registrationYear: props.car.registrationYear ?? '',
+      registrationMonth: props.car.registrationMonth ?? '',
+      mileage: props.car.mileage ?? '',
     }
   }
   return {
@@ -139,9 +139,9 @@ const onSubmit = handleSubmit(
         model: vals.model,
         licensePlate: vals.licensePlate,
         color: vals.color,
-        registrationYear: vals.registrationYear ? parseInt(vals.registrationYear) : null,
-        registrationMonth: vals.registrationMonth ? parseInt(vals.registrationMonth) : null,
-        mileage: vals.mileage ? parseInt(vals.mileage) : null,
+        registrationYear: typeof vals.registrationYear === 'number' ? vals.registrationYear : null,
+        registrationMonth: typeof vals.registrationMonth === 'number' ? vals.registrationMonth : null,
+        mileage: typeof vals.mileage === 'number' ? vals.mileage : null,
       },
     })
   },
