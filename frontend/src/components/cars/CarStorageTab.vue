@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import CarStorageTable from './CarStorageTable.vue'
+import CarStorageDialog from './CarStorageDialog.vue'
 import ClientInfoModal from './ClientInfoModal.vue'
 import { useStoredCarsQuery } from '../../api/cars'
 import type { Client } from '../../types/cars'
@@ -13,6 +14,12 @@ const selectedClient = ref<Client | null>(null)
 
 function handleAddCarToStorage() {
   isStorageDialogOpen.value = true
+}
+
+function handleStorageSubmit(data: { licensePlate: string; isStored: boolean }) {
+  console.log('Add car to storage:', data)
+  // TODO: Create mutation to add car
+  isStorageDialogOpen.value = false
 }
 
 function handleViewClient(client: Client) {
@@ -39,6 +46,12 @@ function handleCloseClientInfo() {
       v-else-if="storedCars"
       :cars="storedCars"
       @view-client="handleViewClient"
+    />
+
+    <CarStorageDialog
+      :open="isStorageDialogOpen"
+      @close="isStorageDialogOpen = false"
+      @submit="handleStorageSubmit"
     />
 
     <ClientInfoModal
