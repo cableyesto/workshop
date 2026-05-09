@@ -43,9 +43,9 @@ watch(
           model: props.car.model,
           licensePlate: props.car.licensePlate,
           color: props.car.color,
-          registrationYear: props.car.registrationYear ?? '',
-          registrationMonth: props.car.registrationMonth ?? '',
-          mileage: props.car.mileage ?? '',
+          registrationYear: props.car.registrationYear !== null ? props.car.registrationYear : '',
+          registrationMonth: props.car.registrationMonth !== null ? props.car.registrationMonth : '',
+          mileage: props.car.mileage !== null ? props.car.mileage : '',
         })
       } else {
         resetForm()
@@ -64,9 +64,9 @@ const schema = toTypedSchema(
       .length(9, 'La plaque doit contenir exactement 9 caractères')
       .regex(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/, 'Format invalide. Attendu: AB-123-CD'),
     color: z.string().min(1, 'La couleur est requise'),
-    registrationYear: z.coerce.number().int().min(1900).max(2100).nullable().optional().or(z.literal('')),
-    registrationMonth: z.coerce.number().int().min(1).max(12).nullable().optional().or(z.literal('')),
-    mileage: z.coerce.number().int().min(0).nullable().optional().or(z.literal('')),
+    registrationYear: z.union([z.coerce.number().int().min(1900).max(2100), z.literal('')]).optional(),
+    registrationMonth: z.union([z.coerce.number().int().min(1).max(12), z.literal('')]).optional(),
+    mileage: z.union([z.coerce.number().int().min(0), z.literal('')]).optional(),
   }),
 )
 
@@ -77,9 +77,9 @@ const getInitialValues = () => {
       model: props.car.model,
       licensePlate: props.car.licensePlate,
       color: props.car.color,
-      registrationYear: props.car.registrationYear ?? '',
-      registrationMonth: props.car.registrationMonth ?? '',
-      mileage: props.car.mileage ?? '',
+      registrationYear: props.car.registrationYear !== null ? props.car.registrationYear : ('' as const),
+      registrationMonth: props.car.registrationMonth !== null ? props.car.registrationMonth : ('' as const),
+      mileage: props.car.mileage !== null ? props.car.mileage : ('' as const),
     }
   }
   return {
@@ -87,19 +87,13 @@ const getInitialValues = () => {
     model: '',
     licensePlate: '',
     color: '',
-    registrationYear: '',
-    registrationMonth: '',
-    mileage: '',
+    registrationYear: '' as const,
+    registrationMonth: '' as const,
+    mileage: '' as const,
   }
 }
 
-const {
-  handleSubmit,
-  errors,
-  defineField,
-  resetForm,
-  setValues,
-} = useForm({
+const { handleSubmit, errors, defineField, resetForm, setValues, setErrors } = useForm({
   validationSchema: schema,
   initialValues: getInitialValues(),
   validateOnMount: false,
@@ -114,13 +108,23 @@ const [registrationYear, registrationYearAttrs] = defineField('registrationYear'
 const [registrationMonth, registrationMonthAttrs] = defineField('registrationMonth')
 const [mileage, mileageAttrs] = defineField('mileage')
 
-const { mutate: updateCar, isPending } = useUpdateCarMutation(
+const { mutate: updateCar, isLoading } = useUpdateCarMutation(
   () => {
     emit('success')
     emit('close')
   },
   (error) => {
     hasAttemptedSubmit.value = true
+    // Check if error is about color validation
+    if (error.message && error.message.includes('Color not found')) {
+      setErrors({
+        color: 'Couleur non disponible',
+      })
+    } else {
+      setErrors({
+        manufacturer: error.message || 'Erreur lors de la mise à jour',
+      })
+    }
   },
 )
 
@@ -177,7 +181,12 @@ function formatLicensePlate(event: Event) {
         <FieldGroup class="gap-2">
           <FieldLabel for="manufacturer">Marque</FieldLabel>
           <Field>
-            <Input id="manufacturer" v-model="manufacturer" v-bind="manufacturerAttrs" type="text" />
+            <Input
+              id="manufacturer"
+              v-model="manufacturer"
+              v-bind="manufacturerAttrs"
+              type="text"
+            />
             <FieldError v-if="hasAttemptedSubmit && errors.manufacturer">{{
               errors.manufacturer
             }}</FieldError>
@@ -279,8 +288,8 @@ function formatLicensePlate(event: Event) {
 
         <DialogFooter>
           <Button type="button" variant="outline" @click="handleClose">Annuler</Button>
-          <Button type="submit" :disabled="isPending">
-            {{ isPending ? 'Enregistrement...' : 'Enregistrer' }}
+          <Button type="submit" :disabled="isLoading">
+            {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
           </Button>
         </DialogFooter>
       </form>

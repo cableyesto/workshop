@@ -6,12 +6,14 @@ namespace App\Service;
 
 use App\Enum\InterventionStatus;
 use App\Repository\CarRepository;
+use App\Repository\ColorRepository;
 use Illuminate\Support\Collection;
 
 final class CarService
 {
     public function __construct(
         private readonly CarRepository $carRepository,
+        private readonly ColorRepository $colorRepository,
     ) {
     }
 
@@ -187,7 +189,7 @@ final class CarService
         string $manufacturer,
         string $model,
         string $licensePlate,
-        string $color,
+        string $colorName,
         ?int $registrationYear,
         ?int $registrationMonth,
         ?int $mileage,
@@ -198,17 +200,21 @@ final class CarService
             throw new \RuntimeException('Car not found');
         }
 
+        // Validate and fetch color entity
+        $color = $this->colorRepository->findOneBy(['name' => $colorName]);
+
+        if (!$color) {
+            throw new \RuntimeException('Color not found. Please use a valid color from the database.');
+        }
+
         $car
             ->setManufacturer($manufacturer)
             ->setModel($model)
             ->setLicensePlate($licensePlate)
+            ->setColor($color)
             ->setRegistrationYear($registrationYear)
             ->setRegistrationMonth($registrationMonth)
             ->setMileage($mileage);
-
-        // Handle color update - assume color is the color name
-        // This is a simplified version - you may need to fetch the Color entity
-        // For now, we'll skip color update or you need to adjust based on your Color entity structure
 
         $this->carRepository->getEntityManager()->flush();
     }
