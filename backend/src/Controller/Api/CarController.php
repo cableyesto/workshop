@@ -124,4 +124,63 @@ final class CarController extends AbstractAuthenticatedController
             return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         }
     }
+
+    #[Route('/api/cars/{id}', name: 'api_cars_update', methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId($id);
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $this->logger->info('Update car request', [
+            'garage_id' => $garageId,
+            'car_id' => $id,
+        ]);
+
+        if (
+            !isset($data['manufacturer']) ||
+            !isset($data['model']) ||
+            !isset($data['licensePlate']) ||
+            !isset($data['color'])
+        ) {
+            $this->logger->warning('Missing required fields for car update', [
+                'garage_id' => $garageId,
+                'car_id' => $id,
+                'data' => $data,
+            ]);
+
+            return $this->json(['error' => 'Missing required fields'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $this->carService->updateCar(
+                $id,
+                $data['manufacturer'],
+                $data['model'],
+                $data['licensePlate'],
+                $data['color'],
+                $data['registrationYear'] ?? null,
+                $data['registrationMonth'] ?? null,
+                $data['mileage'] ?? null,
+            );
+
+            $this->logger->info('Car updated successfully', [
+                'garage_id' => $garageId,
+                'car_id' => $id,
+            ]);
+
+            return $this->json(['success' => true], JsonResponse::HTTP_OK);
+        } catch (\RuntimeException $e) {
+            $this->logger->error('Car not found', [
+                'garage_id' => $garageId,
+                'car_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        }
+    }
 }
