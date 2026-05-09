@@ -32,32 +32,32 @@ const emit = defineEmits<{
         <DialogDescription>Détails du client propriétaire du véhicule</DialogDescription>
       </DialogHeader>
 
-      <div v-if="client" class="space-y-4 py-0">
+      <div class="space-y-4 py-0">
         <Field>
           <FieldGroup class="gap-2">
             <FieldLabel>Nom</FieldLabel>
-            <Input :model-value="client.lastName" disabled />
+            <Input :model-value="client?.lastName || ''" disabled />
           </FieldGroup>
         </Field>
 
         <Field>
           <FieldGroup class="gap-2">
             <FieldLabel>Prénom</FieldLabel>
-            <Input :model-value="client.firstName" disabled />
+            <Input :model-value="client?.firstName || ''" disabled />
           </FieldGroup>
         </Field>
 
         <Field>
           <FieldGroup class="gap-2">
             <FieldLabel>Email</FieldLabel>
-            <Input :model-value="client.email" disabled />
+            <Input :model-value="client?.email || ''" disabled />
           </FieldGroup>
         </Field>
 
         <Field>
           <FieldGroup class="gap-2">
             <FieldLabel>Téléphone</FieldLabel>
-            <Input :model-value="client.phone || 'Non renseigné'" disabled />
+            <Input :model-value="client?.phone || 'Non renseigné'" disabled />
           </FieldGroup>
         </Field>
       </div>
