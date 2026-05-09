@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useQueryCache } from '@pinia/colada'
+import { RefreshCw } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
 import CarRestitutionTable from './CarRestitutionTable.vue'
 import ClientInfoModal from './ClientInfoModal.vue'
 import {
@@ -15,8 +18,17 @@ const isClientInfoModalOpen = ref(false)
 const selectedClient = ref<Client | null>(null)
 const updatingClientIds = ref<Set<number>>(new Set())
 
+const queryCache = useQueryCache()
+
 const { mutate: patchClientCalledBack } = usePatchClientCalledBackMutation(updatingClientIds)
 const { mutate: removeCarFromStorage } = useRemoveCarFromStorageMutation()
+
+function handleRefresh() {
+  queryCache.invalidateQueries({
+    key: ['cars', 'restitution'],
+    exact: true,
+  })
+}
 
 function handleViewClient(client: Client) {
   selectedClient.value = client
@@ -41,6 +53,11 @@ function handleRemoveFromStorage(carId: number) {
 
 <template>
   <div class="flex flex-col gap-4">
+    <div class="flex justify-start">
+      <Button @click="handleRefresh" variant="outline">
+        <RefreshCw class="h-4 w-4" /> Rafraîchir
+      </Button>
+    </div>
     <div v-if="isLoading">Chargement...</div>
     <CarRestitutionTable
       v-else-if="restitutionCars"
