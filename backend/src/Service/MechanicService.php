@@ -22,7 +22,7 @@ final class MechanicService
     }
 
     /**
-     * Get all mechanics for a specific garage
+     * Get all mechanics for a specific garage.
      *
      * @return array<int, array{id: int, lastName: string, firstName: string, birthDate: string, hireDate: string}>
      */
@@ -31,7 +31,7 @@ final class MechanicService
         $mechanics = $this->mechanicRepository->findByGarage($garageId);
 
         return Collection::make($mechanics)
-            ->map(fn($mechanic) => [
+            ->map(fn ($mechanic) => [
                 'id' => $mechanic->getId(),
                 'lastName' => $mechanic->getLastName(),
                 'firstName' => $mechanic->getFirstName(),
@@ -43,14 +43,14 @@ final class MechanicService
     }
 
     /**
-     * Validate that a PIN is unique within a garage
+     * Validate that a PIN is unique within a garage.
      *
      * @throws \InvalidArgumentException
      */
     private function validatePinUniqueness(string $pin, int $garageId, ?int $excludeMechanicId = null): void
     {
         // Validate PIN format
-        if (!\App\Entity\Mechanic::isValidPin($pin)) {
+        if (!Mechanic::isValidPin($pin)) {
             throw new \InvalidArgumentException('PIN must be exactly 4 digits');
         }
 
@@ -59,7 +59,7 @@ final class MechanicService
 
         foreach ($mechanics as $mechanic) {
             // Skip the mechanic being updated (if applicable)
-            if ($excludeMechanicId !== null && $mechanic->getId() === $excludeMechanicId) {
+            if (null !== $excludeMechanicId && $mechanic->getId() === $excludeMechanicId) {
                 continue;
             }
 
@@ -71,9 +71,10 @@ final class MechanicService
     }
 
     /**
-     * Create a new mechanic in a specific garage
+     * Create a new mechanic in a specific garage.
      *
      * @param array{lastName: string, firstName: string, birthDate: string, hireDate?: string, pin: string} $data
+     *
      * @throws \InvalidArgumentException
      */
     public function createMechanic(int $garageId, array $data): Mechanic
@@ -92,7 +93,7 @@ final class MechanicService
 
         // Convert birthDate from Y-m-d string to DateTimeImmutable
         $birthDate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['birthDate']);
-        if ($birthDate === false) {
+        if (false === $birthDate) {
             throw new \InvalidArgumentException('Invalid birthDate format. Expected Y-m-d');
         }
         $mechanic->setBirthDate($birthDate);
@@ -100,7 +101,7 @@ final class MechanicService
         // Convert hireDate if provided
         if (!empty($data['hireDate'])) {
             $hireDate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['hireDate']);
-            if ($hireDate === false) {
+            if (false === $hireDate) {
                 throw new \InvalidArgumentException('Invalid hireDate format. Expected Y-m-d');
             }
             $mechanic->setStartDate($hireDate);
@@ -118,7 +119,7 @@ final class MechanicService
             foreach ($errors as $error) {
                 $errorMessages[] = $error->getMessage();
             }
-            throw new \InvalidArgumentException('Validation failed: ' . implode(', ', $errorMessages));
+            throw new \InvalidArgumentException('Validation failed: '.implode(', ', $errorMessages));
         }
 
         $this->entityManager->persist($mechanic);
@@ -128,9 +129,10 @@ final class MechanicService
     }
 
     /**
-     * Update an existing mechanic
+     * Update an existing mechanic.
      *
      * @param array{lastName?: string, firstName?: string, birthDate?: string, hireDate?: string, pin?: string} $data
+     *
      * @throws \InvalidArgumentException
      */
     public function updateMechanic(int $mechanicId, int $garageId, array $data): Mechanic
@@ -164,7 +166,7 @@ final class MechanicService
 
         if (isset($data['birthDate'])) {
             $birthDate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['birthDate']);
-            if ($birthDate === false) {
+            if (false === $birthDate) {
                 throw new \InvalidArgumentException('Invalid birthDate format. Expected Y-m-d');
             }
             $mechanic->setBirthDate($birthDate);
@@ -174,7 +176,7 @@ final class MechanicService
         if (isset($data['hireDate'])) {
             if (!empty($data['hireDate'])) {
                 $hireDate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['hireDate']);
-                if ($hireDate === false) {
+                if (false === $hireDate) {
                     throw new \InvalidArgumentException('Invalid hireDate format. Expected Y-m-d');
                 }
                 $mechanic->setStartDate($hireDate);
@@ -197,7 +199,7 @@ final class MechanicService
             foreach ($errors as $error) {
                 $errorMessages[] = $error->getMessage();
             }
-            throw new \InvalidArgumentException('Validation failed: ' . implode(', ', $errorMessages));
+            throw new \InvalidArgumentException('Validation failed: '.implode(', ', $errorMessages));
         }
 
         $this->entityManager->flush();
@@ -206,7 +208,7 @@ final class MechanicService
     }
 
     /**
-     * Delete a mechanic
+     * Delete a mechanic.
      *
      * @throws \InvalidArgumentException
      */
