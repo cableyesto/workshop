@@ -78,10 +78,13 @@ const { handleSubmit, errors, defineField } = useForm({
     mechanicId: props.mechanicId,
     licensePlate: props.licensePlate,
   },
+  validateOnMount: false,
 })
 
 const [mechanicId] = defineField('mechanicId')
-const [licensePlate, licensePlateAttrs] = defineField('licensePlate')
+const [licensePlate] = defineField('licensePlate', {
+  validateOnModelUpdate: false,
+})
 
 const onSubmit = handleSubmit(
   () => {
@@ -93,6 +96,9 @@ const onSubmit = handleSubmit(
 )
 
 function formatLicensePlate(event: Event) {
+  // Clear validation errors when user types
+  hasAttemptedSubmit.value = false
+
   const input = event.target as HTMLInputElement
   let value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
 
@@ -102,6 +108,8 @@ function formatLicensePlate(event: Event) {
     value = value.slice(0, 2) + '-' + value.slice(2, 5) + '-' + value.slice(5, 7)
   }
 
+  // Update both vee-validate field and emit to parent
+  licensePlate.value = value
   emit('update:licensePlate', value)
 }
 
@@ -172,7 +180,6 @@ function selectMechanic(id: number) {
         <Input
           id="licensePlate"
           :model-value="licensePlate"
-          v-bind="licensePlateAttrs"
           type="text"
           placeholder="AB-123-CD"
           maxlength="9"
