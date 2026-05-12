@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\Entity\Intervention;
+use App\Enum\InterventionStatus;
+use App\Repository\CarRepository;
 use App\Repository\InterventionRepository;
+use App\Repository\MechanicRepository;
 use Illuminate\Support\Collection;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -20,8 +24,118 @@ final class InterventionController extends AbstractAuthenticatedController
         JWTTokenManagerInterface $jwtManager,
         LoggerInterface $logger,
         private readonly InterventionRepository $interventionRepository,
+        private readonly MechanicRepository $mechanicRepository,
+        private readonly CarRepository $carRepository,
     ) {
         parent::__construct($tokenStorage, $jwtManager, $logger);
+    }
+
+    #[Route('/api/interventions', name: 'api_interventions_create', methods: ['POST'])]
+    public function create(Request $request): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $this->logger->info('Create intervention request', [
+            'garage_id' => $garageId,
+            'data' => $data,
+        ]);
+
+        // Validate required fields
+        if (!isset($data['mechanicId']) || !isset($data['licensePlate'])) {
+            $this->logger->warning('Missing required fields for intervention creation', [
+                'garage_id' => $garageId,
+                'data' => $data,
+            ]);
+
+            return $this->json([
+                'error' => 'Missing required fields: mechanicId and licensePlate',
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $mechanicId = (int) $data['mechanicId'];
+        $licensePlate = (string) $data['licensePlate'];
+
+        try {
+            // Validate mechanic exists and belongs to garage
+            $mechanic = $this->mechanicRepository->find($mechanicId);
+            if (!$mechanic) {
+                $this->logger->warning('Mechanic not found', [
+                    'garage_id' => $garageId,
+                    'mechanic_id' => $mechanicId,
+                ]);
+
+                return $this->json([
+                    'error' => 'Mechanic not found',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Check if mechanic works at this garage
+            $mechanicBelongsToGarage = Collection::make($mechanic->getGarages())
+                ->contains(fn($garage) => $garage->getId() === $garageId);
+
+            if (!$mechanicBelongsToGarage) {
+                $this->logger->warning('Mechanic does not belong to garage', [
+                    'garage_id' => $garageId,
+                    'mechanic_id' => $mechanicId,
+                ]);
+
+                return $this->json([
+                    'error' => 'Mechanic does not belong to this garage',
+                ], JsonResponse::HTTP_FORBIDDEN);
+            }
+
+            // Find car by license plate for this garage
+            $car = $this->carRepository->findByLicensePlateForGarage($licensePlate, $garageId);
+            if (!$car) {
+                $this->logger->warning('Car not found for license plate', [
+                    'garage_id' => $garageId,
+                    'license_plate' => $licensePlate,
+                ]);
+
+                return $this->json([
+                    'error' => 'Car not found with this license plate',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Create intervention
+            $intervention = new Intervention();
+            $intervention
+                ->setCar($car)
+                ->setDate(\DateTimeImmutable::createFromMutable(new \DateTime()))
+                ->setStartTime(\DateTimeImmutable::createFromMutable(new \DateTime()))
+                ->setStatus(InterventionStatus::Assigned)
+                ->addMechanic($mechanic);
+
+            // Persist
+            $em = $this->interventionRepository->getEntityManager();
+            $em->persist($intervention);
+            $em->flush();
+
+            $this->logger->info('Intervention created successfully', [
+                'garage_id' => $garageId,
+                'intervention_id' => $intervention->getId(),
+                'mechanic_id' => $mechanicId,
+                'car_id' => $car->getId(),
+            ]);
+
+            return $this->json([
+                'id' => $intervention->getId(),
+            ], JsonResponse::HTTP_CREATED);
+        } catch (\Exception $e) {
+            $this->logger->error('Error creating intervention', [
+                'garage_id' => $garageId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json([
+                'error' => 'An error occurred while creating the intervention',
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     #[Route('/api/interventions/search', name: 'api_interventions_search', methods: ['GET'])]
