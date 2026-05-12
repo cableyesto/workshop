@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import InterventionStep1 from '@/components/interventions/InterventionStep1.vue'
 import InterventionSearchResult from '@/components/interventions/InterventionSearchResult.vue'
-import { useSearchInterventionQuery } from '@/api/interventions'
+import { apiRequest } from '@/api/helpers'
 import type { SearchInterventionResponse } from '@/types/intervention'
 
 const mechanicId = ref<number | undefined>(undefined)
@@ -10,21 +10,22 @@ const licensePlate = ref('')
 const showSearchResult = ref(false)
 const searchResult = ref<SearchInterventionResponse | null>(null)
 
-const searchQuery = useSearchInterventionQuery(mechanicId.value || 0, licensePlate.value)
-
 async function handleSearch() {
-  if (!mechanicId.value || !licensePlate.value) return
+  if (!mechanicId.value || !licensePlate.value) {
+    return
+  }
 
   try {
-    // Manually trigger the query
-    const result = await searchQuery.refetch()
+    const result = await apiRequest<SearchInterventionResponse>(
+      `/api/interventions/search?mechanicId=${mechanicId.value}&licensePlate=${licensePlate.value}`,
+      {},
+      'Failed to search intervention',
+    )
 
-    if (result.data) {
-      searchResult.value = result.data
-      showSearchResult.value = true
-    }
+    searchResult.value = result
+    showSearchResult.value = true
   } catch (error) {
-    console.error('Search error:', error)
+    alert('Erreur: ' + (error as Error).message)
   }
 }
 
