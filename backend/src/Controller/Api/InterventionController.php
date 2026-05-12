@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\Entity\Intervention;
+use App\Enum\DocumentType;
 use App\Enum\InterventionStatus;
+use App\Enum\InterventionType;
 use App\Repository\CarRepository;
 use App\Repository\InterventionRepository;
 use App\Repository\MechanicRepository;
@@ -102,13 +104,15 @@ final class InterventionController extends AbstractAuthenticatedController
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
 
-            // Create intervention
+            // Create intervention with default values
             $intervention = new Intervention();
             $intervention
                 ->setCar($car)
                 ->setDate(\DateTimeImmutable::createFromMutable(new \DateTime()))
                 ->setStartTime(\DateTimeImmutable::createFromMutable(new \DateTime()))
                 ->setStatus(InterventionStatus::Assigned)
+                ->setType(InterventionType::Repair)  // Default - will be updated in Step 2
+                ->setDocumentType(DocumentType::Invoice)   // Default - will be updated in Step 2
                 ->addMechanic($mechanic);
 
             // Persist

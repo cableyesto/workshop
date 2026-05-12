@@ -172,7 +172,6 @@ export function usePatchClientCalledBackMutation(updatingIds: Ref<Set<number>>) 
     },
     onError: (error) => {
       console.error('Error updating client called back:', error)
-      alert(`Erreur: ${error.message}`)
     },
     onSettled: (_, __, { clientId }) => {
       updatingIds.value.delete(clientId)
@@ -191,7 +190,6 @@ export function useRemoveCarFromStorageMutation() {
     },
     onError: (error) => {
       console.error('Error removing car from storage:', error)
-      alert(`Erreur: ${error.message}`)
     },
   })
 }

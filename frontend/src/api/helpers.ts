@@ -57,7 +57,6 @@ export function createMutationHook<TData = void, TVariables = unknown>(
     },
     onError: (error) => {
       console.error(`${errorPrefix}:`, error)
-      alert(`Erreur: ${error.message}`)
     },
   })
 }

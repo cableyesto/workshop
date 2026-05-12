@@ -72,7 +72,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     emit('next')
   } catch (error) {
-    alert('Erreur: ' + (error as Error).message)
+    console.error('Error handling submit:', error)
   }
 })
 </script>

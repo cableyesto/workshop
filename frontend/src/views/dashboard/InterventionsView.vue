@@ -32,19 +32,38 @@ async function handleSearch() {
     searchResult.value = result
     showSearchResult.value = true
   } catch (error) {
-    alert('Erreur: ' + (error as Error).message)
+    console.error('Create error:', error)
   }
 }
 
 async function handleCreate() {
   showSearchResult.value = false
 
+  if (!mechanicId.value || !licensePlate.value) {
+    return
+  }
+
   try {
+    const response = await apiRequest<{ id: number }>(
+      '/api/interventions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mechanicId: mechanicId.value,
+          licensePlate: licensePlate.value,
+        }),
+      },
+      'Failed to create intervention',
+    )
+
+    interventionId.value = response.id
     isEditMode.value = false
     currentStep.value = 2
   } catch (error) {
     console.error('Create error:', error)
-    alert('Erreur: ' + (error as Error).message)
   }
 }
 
