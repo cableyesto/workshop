@@ -46,6 +46,9 @@ class InterventionFixtures extends Fixture implements DependentFixtureInterface
                 ->setDocumentType($faker->randomElement(DocumentType::cases()))
                 ->setCar($car);
 
+            // Set car as stored since it has an intervention
+            $car->setIsStored(true);
+
             // Find a mechanic that belongs to the same garage as the car's client
             $carGarage = $car->getClient()->getGarage();
             $validMechanic = null;
