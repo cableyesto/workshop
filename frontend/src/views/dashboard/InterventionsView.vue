@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import InterventionStep1 from '@/components/interventions/InterventionStep1.vue'
+import InterventionStep2 from '@/components/interventions/InterventionStep2.vue'
 import InterventionSearchResult from '@/components/interventions/InterventionSearchResult.vue'
 import { apiRequest } from '@/api/helpers'
 import type { SearchInterventionResponse } from '@/types/intervention'
 
+// Wizard state
+const currentStep = ref(1)
+const interventionId = ref<number | undefined>(undefined)
+const isEditMode = ref(false)
+
+// Step 1 data
 const mechanicId = ref<number | undefined>(undefined)
 const licensePlate = ref('')
 const showSearchResult = ref(false)
@@ -29,20 +36,54 @@ async function handleSearch() {
   }
 }
 
-function handleCreate() {
-  console.log('Create new intervention')
+async function handleCreate() {
   showSearchResult.value = false
-  // TODO: Navigate to Step 2 or create intervention
+
+  try {
+    isEditMode.value = false
+    currentStep.value = 2
+  } catch (error) {
+    console.error('Create error:', error)
+    alert('Erreur: ' + (error as Error).message)
+  }
 }
 
-function handleEdit(interventionId: number) {
-  console.log('Edit intervention:', interventionId)
+function handleEdit(id: number) {
+  console.log('Editing intervention:', id)
   showSearchResult.value = false
-  // TODO: Load intervention and navigate to wizard
+
+  interventionId.value = id
+  isEditMode.value = true
+  currentStep.value = 2
 }
 
-function handleCancel() {
+function handleCancelSearch() {
   showSearchResult.value = false
+}
+
+function handleStepBack() {
+  if (currentStep.value > 1) {
+    currentStep.value--
+  }
+}
+
+function handleStep2Complete() {
+  // TODO: Move to Step 3 when ready
+  console.log('Step 2 complete')
+  resetWizard()
+}
+
+function handleCancelWizard() {
+  resetWizard()
+}
+
+function resetWizard() {
+  currentStep.value = 1
+  interventionId.value = undefined
+  isEditMode.value = false
+  mechanicId.value = undefined
+  licensePlate.value = ''
+  searchResult.value = null
 }
 </script>
 
@@ -50,12 +91,26 @@ function handleCancel() {
   <div class="flex flex-col gap-6">
     <h1 class="text-3xl font-bold">Interventions</h1>
 
-    <div class="flex justify-center">
+    <!-- Step 1: Search -->
+    <div v-if="currentStep === 1" class="flex justify-center">
       <div class="w-full max-w-md">
         <InterventionStep1
           v-model:mechanic-id="mechanicId"
           v-model:license-plate="licensePlate"
           @search="handleSearch"
+        />
+      </div>
+    </div>
+
+    <!-- Step 2: Type Selection -->
+    <div v-if="currentStep === 2" class="flex justify-center">
+      <div class="w-full max-w-md">
+        <InterventionStep2
+          :intervention-id="interventionId"
+          :is-edit-mode="isEditMode"
+          @next="handleStep2Complete"
+          @back="handleStepBack"
+          @cancel="handleCancelWizard"
         />
       </div>
     </div>
@@ -66,7 +121,7 @@ function handleCancel() {
       :result="searchResult"
       @create="handleCreate"
       @edit="handleEdit"
-      @cancel="handleCancel"
+      @cancel="handleCancelSearch"
     />
   </div>
 </template>
