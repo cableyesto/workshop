@@ -75,6 +75,52 @@ final class CarController extends AbstractAuthenticatedController
         return $this->json($cars);
     }
 
+    #[Route('/api/cars/{id}/storage', name: 'api_cars_update_storage_by_id', methods: ['PATCH'])]
+    public function updateStorageById(int $id, Request $request): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $this->logger->info('Update car storage by ID request', [
+            'garage_id' => $garageId,
+            'car_id' => $id,
+            'is_stored' => $data['isStored'] ?? 'missing',
+        ]);
+
+        if (!isset($data['isStored'])) {
+            $this->logger->warning('Missing required field for car storage update', [
+                'garage_id' => $garageId,
+                'car_id' => $id,
+            ]);
+
+            return $this->json(['error' => 'Missing required field: isStored'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $this->carService->updateCarStorageById($id, $data['isStored'], $garageId);
+
+            $this->logger->info('Car storage status updated successfully', [
+                'garage_id' => $garageId,
+                'car_id' => $id,
+                'is_stored' => $data['isStored'],
+            ]);
+
+            return $this->json(['success' => true], JsonResponse::HTTP_OK);
+        } catch (\RuntimeException $e) {
+            $this->logger->error('Car not found', [
+                'garage_id' => $garageId,
+                'car_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        }
+    }
+
     #[Route('/api/cars/license-plate', name: 'api_cars_update_storage_by_license_plate', methods: ['PATCH'])]
     public function updateStorageByLicensePlate(Request $request): JsonResponse
     {

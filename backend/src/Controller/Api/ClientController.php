@@ -23,6 +23,50 @@ final class ClientController extends AbstractAuthenticatedController
         parent::__construct($tokenStorage, $jwtManager, $logger);
     }
 
+    #[Route('/api/clients/{id}', name: 'api_clients_update_called_back', methods: ['PATCH'])]
+    public function updateCalledBack(int $id, Request $request): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId($id);
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $this->logger->info('Update client called back status', [
+            'garage_id' => $garageId,
+            'client_id' => $id,
+        ]);
+
+        if (!isset($data['isClientCalledBack'])) {
+            $this->logger->warning('Missing isClientCalledBack field', [
+                'garage_id' => $garageId,
+                'client_id' => $id,
+            ]);
+
+            return $this->json(['error' => 'Missing required field: isClientCalledBack'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $this->clientService->updateClientCalledBackStatus($id, $data['isClientCalledBack']);
+
+            $this->logger->info('Client called back status updated successfully', [
+                'garage_id' => $garageId,
+                'client_id' => $id,
+            ]);
+
+            return $this->json(['success' => true], JsonResponse::HTTP_OK);
+        } catch (\RuntimeException $e) {
+            $this->logger->error('Client not found', [
+                'garage_id' => $garageId,
+                'client_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        }
+    }
+
     #[Route('/api/clients/{id}', name: 'api_clients_update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {

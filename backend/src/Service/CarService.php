@@ -170,6 +170,29 @@ final class CarService
     }
 
     /**
+     * Update car storage status by ID
+     */
+    public function updateCarStorageById(
+        int $carId,
+        bool $isStored,
+        int $garageId,
+    ): void {
+        $car = $this->carRepository->find($carId);
+
+        if (!$car) {
+            throw new \RuntimeException('Car not found');
+        }
+
+        // Verify car belongs to garage
+        if ($car->getClient()->getGarage()->getId() !== $garageId) {
+            throw new \RuntimeException('Car does not belong to this garage');
+        }
+
+        $car->setIsStored($isStored);
+        $this->carRepository->getEntityManager()->flush();
+    }
+
+    /**
      * Update car storage status by license plate
      */
     public function updateCarStorageByLicensePlate(

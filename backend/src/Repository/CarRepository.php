@@ -58,6 +58,7 @@ final class CarRepository extends ServiceEntityRepository
 
     /**
      * Find all cars with interventions for a specific garage
+     * Only returns cars that are currently stored in the garage
      *
      * @return Car[]
      */
@@ -70,7 +71,9 @@ final class CarRepository extends ServiceEntityRepository
             ->join('client.garage', 'garage')
             ->join('car.interventions', 'interventions')
             ->where('garage.id = :garageId')
+            ->andWhere('car.isStored = :isStored')
             ->setParameter('garageId', $garageId)
+            ->setParameter('isStored', true)
             ->getQuery()
             ->getResult();
     }

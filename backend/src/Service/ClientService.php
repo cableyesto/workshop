@@ -37,4 +37,20 @@ final class ClientService
 
         $this->clientRepository->getEntityManager()->flush();
     }
+
+    /**
+     * Update client called back status
+     */
+    public function updateClientCalledBackStatus(int $clientId, bool $isClientCalledBack): void
+    {
+        $client = $this->clientRepository->find($clientId);
+
+        if (!$client) {
+            throw new \RuntimeException('Client not found');
+        }
+
+        $client->setIsClientCalledBack($isClientCalledBack);
+
+        $this->clientRepository->getEntityManager()->flush();
+    }
 }

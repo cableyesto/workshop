@@ -187,6 +187,8 @@ export function useRemoveCarFromStorageMutation() {
     mutation: removeCarFromStorageAPI,
     onSuccess: () => {
       queryCache.invalidateQueries({ key: ['cars', 'restitution'], exact: true })
+      queryCache.invalidateQueries({ key: ['cars', 'interventions'], exact: true })
+      queryCache.invalidateQueries({ key: ['cars', 'storage'], exact: true })
     },
     onError: (error) => {
       console.error('Error removing car from storage:', error)
