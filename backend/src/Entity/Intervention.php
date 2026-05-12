@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: InterventionRepository::class)]
 class Intervention
@@ -223,5 +224,34 @@ class Intervention
         }
 
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validateMechanicsInSameGarage(ExecutionContextInterface $context): void
+    {
+        $car = $this->getCar();
+        if (!$car || !$car->getClient() || !$car->getClient()->getGarage()) {
+            return;
+        }
+
+        $interventionGarage = $car->getClient()->getGarage();
+
+        foreach ($this->mechanics as $mechanic) {
+            $mechanicGarages = $mechanic->getGarages();
+
+            $belongsToGarage = $mechanicGarages->exists(
+                fn($key, Garage $g) => $g->getId() === $interventionGarage->getId()
+            );
+
+            if (!$belongsToGarage) {
+                $context->buildViolation(
+                    'Mechanic "{{ name }}" does not belong to garage "{{ garage }}".'
+                )
+                ->setParameter('{{ name }}', $mechanic->getFirstName() . ' ' . $mechanic->getLastName())
+                ->setParameter('{{ garage }}', $interventionGarage->getName())
+                ->atPath('mechanics')
+                ->addViolation();
+            }
+        }
     }
 }

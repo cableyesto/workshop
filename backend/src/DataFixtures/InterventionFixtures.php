@@ -46,34 +46,40 @@ class InterventionFixtures extends Fixture implements DependentFixtureInterface
                 ->setDocumentType($faker->randomElement(DocumentType::cases()))
                 ->setCar($car);
 
-            // Assign 1-3 mechanics to this intervention
-            /*
-            $mechanicCount = $faker->numberBetween(1, 3);
-            $usedMechanics = [];
+            // Find a mechanic that belongs to the same garage as the car's client
+            $carGarage = $car->getClient()->getGarage();
+            $validMechanic = null;
 
-            for ($m = 0; $m < $mechanicCount; ++$m) {
-                $mechanicIndex = $faker->numberBetween(1, 5);
+            // Try all 5 mechanics to find one that works at this garage
+            $mechanicIndices = range(1, 5);
+            shuffle($mechanicIndices);
 
-                // Avoid duplicate mechanics in same intervention
-                if (!in_array($mechanicIndex, $usedMechanics)) {
-                    $mechanic = $this->getReference(
-                        sprintf(MechanicFixtures::MECHANIC_REFERENCE, $mechanicIndex),
-                        \App\Entity\Mechanic::class
-                    );
-                    $intervention->addMechanic($mechanic);
-                    $usedMechanics[] = $mechanicIndex;
+            foreach ($mechanicIndices as $mechanicIndex) {
+                $mechanic = $this->getReference(
+                    sprintf(MechanicFixtures::MECHANIC_REFERENCE, $mechanicIndex),
+                    \App\Entity\Mechanic::class
+                );
+
+                // Check if mechanic works at this garage
+                foreach ($mechanic->getGarages() as $garage) {
+                    if ($garage->getId() === $carGarage->getId()) {
+                        $validMechanic = $mechanic;
+                        break 2;
+                    }
                 }
             }
-            */
 
-            // Assign only one mechanic for task.
-            $mechanicIndex = $faker->numberBetween(1, 5);
-            // Avoid duplicate mechanics in same intervention
-            $mechanic = $this->getReference(
-                sprintf(MechanicFixtures::MECHANIC_REFERENCE, $mechanicIndex),
-                \App\Entity\Mechanic::class
-            );
-            $intervention->addMechanic($mechanic);
+            // If no valid mechanic found, add the car's garage to the first mechanic
+            if ($validMechanic === null) {
+                $mechanic = $this->getReference(
+                    sprintf(MechanicFixtures::MECHANIC_REFERENCE, 1),
+                    \App\Entity\Mechanic::class
+                );
+                $mechanic->addGarage($carGarage);
+                $validMechanic = $mechanic;
+            }
+
+            $intervention->addMechanic($validMechanic);
 
             // Optional fields - 50% chance each
             if ($faker->boolean(50)) {
