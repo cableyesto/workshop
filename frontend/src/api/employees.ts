@@ -54,11 +54,7 @@ export async function updateMechanicAPI(
 }
 
 export async function deleteMechanicAPI(id: number): Promise<void> {
-  return apiRequest<void>(
-    `/api/mechanics/${id}`,
-    { method: 'DELETE' },
-    'Failed to delete mechanic',
-  )
+  return apiRequest<void>(`/api/mechanics/${id}`, { method: 'DELETE' }, 'Failed to delete mechanic')
 }
 
 // ============================================
@@ -109,8 +105,7 @@ export function useCreateMechanicMutation(dialogOpen: Ref<boolean>) {
 export function useUpdateMechanicMutation(dialogOpen: Ref<boolean>) {
   return createMutationHook(
     'update-mechanic',
-    ({ id, data }: { id: number; data: Partial<EmployeeFormData> }) =>
-      updateMechanicAPI(id, data),
+    ({ id, data }: { id: number; data: Partial<EmployeeFormData> }) => updateMechanicAPI(id, data),
     'mechanics',
     dialogOpen,
     'Error updating mechanic',
