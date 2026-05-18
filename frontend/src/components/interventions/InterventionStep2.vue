@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { useUpdateInterventionMutation } from '@/api/interventions'
+import type { InterventionType, DocumentType } from '@/types/intervention'
 
 interface Props {
   interventionId: number | undefined
@@ -20,13 +22,13 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-// Validation schema
+// Validation schema with English backend values
 const schema = toTypedSchema(
   z.object({
-    interventionType: z.enum(['Réparation', 'Diagnostic'], {
+    interventionType: z.enum(['Repair', 'Diagnostic'], {
       required_error: "Sélectionnez le type d'intervention",
     }),
-    documentType: z.enum(['Devis', 'Facture'], {
+    documentType: z.enum(['Estimate', 'Invoice'], {
       required_error: 'Sélectionnez le type de document',
     }),
   }),
@@ -35,13 +37,24 @@ const schema = toTypedSchema(
 const { handleSubmit, errors, defineField, setValues } = useForm({
   validationSchema: schema,
   initialValues: {
-    interventionType: undefined,
-    documentType: undefined,
+    interventionType: 'Repair',
+    documentType: 'Estimate',
   },
 })
 
 const [interventionType] = defineField('interventionType')
 const [documentType] = defineField('documentType')
+
+// Setup mutation
+const { mutate: updateIntervention } = useUpdateInterventionMutation(
+  () => {
+    emit('next')
+  },
+  (error) => {
+    console.error('Error updating intervention:', error)
+    alert('Erreur: ' + error.message)
+  },
+)
 
 // Load existing data in edit mode
 onMounted(async () => {
@@ -56,24 +69,18 @@ onMounted(async () => {
 })
 
 const onSubmit = handleSubmit(async (values) => {
-  try {
-    // TODO: PATCH /api/interventions/{interventionId} with type data
-    // await apiRequest(
-    //   `/api/interventions/${props.interventionId}`,
-    //   {
-    //     method: 'PATCH',
-    //     body: JSON.stringify({
-    //       interventionType: values.interventionType,
-    //       documentType: values.documentType,
-    //     }),
-    //   },
-    //   'Failed to update intervention',
-    // )
-
-    emit('next')
-  } catch (error) {
-    console.error('Error handling submit:', error)
+  if (!props.interventionId) {
+    alert('Erreur: ID intervention manquant')
+    return
   }
+
+  updateIntervention({
+    interventionId: props.interventionId,
+    data: {
+      interventionType: values.interventionType as InterventionType,
+      documentType: values.documentType as DocumentType,
+    },
+  })
 })
 </script>
 
@@ -85,10 +92,14 @@ const onSubmit = handleSubmit(async (values) => {
     <FieldGroup class="gap-2">
       <FieldLabel>Type d'intervention</FieldLabel>
       <Field>
-        <RadioGroup v-model="interventionType" class="flex flex-col gap-2">
+        <RadioGroup
+          v-model="interventionType"
+          default-value="Repair"
+          class="flex flex-col gap-2"
+        >
           <div class="flex items-center space-x-2">
-            <RadioGroupItem value="Réparation" id="type-reparation" />
-            <label for="type-reparation" class="cursor-pointer ml-2">Réparation</label>
+            <RadioGroupItem value="Repair" id="type-repair" />
+            <label for="type-repair" class="cursor-pointer ml-2">Réparation</label>
           </div>
           <div class="flex items-center space-x-2">
             <RadioGroupItem value="Diagnostic" id="type-diagnostic" />
@@ -103,14 +114,14 @@ const onSubmit = handleSubmit(async (values) => {
     <FieldGroup class="gap-2">
       <FieldLabel>Type de document</FieldLabel>
       <Field>
-        <RadioGroup v-model="documentType" class="flex flex-col gap-2">
+        <RadioGroup v-model="documentType" default-value="Estimate" class="flex flex-col gap-2">
           <div class="flex items-center space-x-2">
-            <RadioGroupItem value="Devis" id="doc-devis" />
-            <label for="doc-devis" class="cursor-pointer ml-2">Devis</label>
+            <RadioGroupItem value="Estimate" id="doc-estimate" />
+            <label for="doc-estimate" class="cursor-pointer ml-2">Devis</label>
           </div>
           <div class="flex items-center space-x-2">
-            <RadioGroupItem value="Facture" id="doc-facture" />
-            <label for="doc-facture" class="cursor-pointer ml-2">Facture</label>
+            <RadioGroupItem value="Invoice" id="doc-invoice" />
+            <label for="doc-invoice" class="cursor-pointer ml-2">Facture</label>
           </div>
         </RadioGroup>
         <FieldError v-if="errors.documentType">{{ errors.documentType }}</FieldError>

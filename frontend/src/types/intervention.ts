@@ -1,3 +1,8 @@
+// Backend enum types (used in code, API calls)
+export type InterventionType = 'Repair' | 'Diagnostic'
+export type DocumentType = 'Estimate' | 'Invoice'
+export type InterventionStatus = 'Assigned' | 'In Progress' | 'Paused' | 'Stopped'
+
 export interface Intervention {
   id: number
   mechanic: {
@@ -11,9 +16,9 @@ export interface Intervention {
   }
   startDate?: string
   startTime?: string
-  status: 'Affectée' | 'En cours' | 'En pause' | 'Terminée'
-  interventionType?: 'Réparation' | 'Diagnostic' | null
-  documentType?: 'Devis' | 'Facture' | null
+  status: InterventionStatus
+  interventionType?: InterventionType | null
+  documentType?: DocumentType | null
   clientRemark?: boolean
   clientNeed?: string | null
   interventionEndRemark?: boolean
@@ -23,4 +28,12 @@ export interface Intervention {
 export interface SearchInterventionResponse {
   found: boolean
   intervention?: Intervention
+}
+
+// Payload for updating intervention
+export interface UpdateInterventionPayload {
+  interventionType?: InterventionType
+  documentType?: DocumentType
+  clientRequest?: string
+  finalNote?: string
 }
