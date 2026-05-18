@@ -195,6 +195,101 @@ final class InterventionController extends AbstractAuthenticatedController
                 $intervention->setFinalNote($data['finalNote'] ?: null);
             }
 
+            // Update mechanic
+            if (isset($data['mechanicId'])) {
+                $mechanicId = (int) $data['mechanicId'];
+                $mechanic = $this->mechanicRepository->find($mechanicId);
+
+                if (!$mechanic) {
+                    $this->logger->warning('Mechanic not found for update', [
+                        'garage_id' => $garageId,
+                        'mechanic_id' => $mechanicId,
+                    ]);
+
+                    return $this->json([
+                        'error' => 'Mechanic not found',
+                    ], JsonResponse::HTTP_NOT_FOUND);
+                }
+
+                // Check if mechanic works at this garage
+                $mechanicBelongsToGarage = Collection::make($mechanic->getGarages())
+                    ->contains(fn($garage) => $garage->getId() === $garageId);
+
+                if (!$mechanicBelongsToGarage) {
+                    $this->logger->warning('Mechanic does not belong to garage for update', [
+                        'garage_id' => $garageId,
+                        'mechanic_id' => $mechanicId,
+                    ]);
+
+                    return $this->json([
+                        'error' => 'Mechanic does not belong to this garage',
+                    ], JsonResponse::HTTP_FORBIDDEN);
+                }
+
+                // Replace existing mechanics with new one
+                $intervention->getMechanics()->clear();
+                $intervention->addMechanic($mechanic);
+            }
+
+            // Update car (by license plate)
+            if (isset($data['licensePlate'])) {
+                $licensePlate = (string) $data['licensePlate'];
+                $car = $this->carRepository->findByLicensePlateForGarage($licensePlate, $garageId);
+
+                if (!$car) {
+                    $this->logger->warning('Car not found for license plate update', [
+                        'garage_id' => $garageId,
+                        'license_plate' => $licensePlate,
+                    ]);
+
+                    return $this->json([
+                        'error' => 'Car not found with this license plate',
+                    ], JsonResponse::HTTP_NOT_FOUND);
+                }
+
+                $intervention->setCar($car);
+            }
+
+            // Update date
+            if (isset($data['date'])) {
+                try {
+                    $date = \DateTimeImmutable::createFromFormat('Y-m-d', $data['date']);
+                    if ($date === false) {
+                        throw new \Exception('Invalid date format');
+                    }
+                    $intervention->setDate($date);
+                } catch (\Exception $e) {
+                    $this->logger->warning('Invalid date format', [
+                        'garage_id' => $garageId,
+                        'date' => $data['date'],
+                    ]);
+
+                    return $this->json([
+                        'error' => 'Invalid date format. Expected: Y-m-d',
+                    ], JsonResponse::HTTP_BAD_REQUEST);
+                }
+            }
+
+            // Update start time
+            if (isset($data['startTime'])) {
+                try {
+                    $startTime = \DateTimeImmutable::createFromFormat('H:i', $data['startTime']);
+                    if ($startTime === false) {
+                        throw new \Exception('Invalid time format');
+                    }
+                    $intervention->setStartTime($startTime);
+                } catch (\Exception $e) {
+                    $this->logger->warning('Invalid time format', [
+                        'garage_id' => $garageId,
+                        'startTime' => $data['startTime'],
+                    ]);
+
+                    return $this->json([
+                        'error' => 'Invalid time format. Expected: H:i',
+                    ], JsonResponse::HTTP_BAD_REQUEST);
+                }
+            }
+
             $this->interventionRepository->getEntityManager()->flush();
 
             $this->logger->info('Intervention updated successfully', [
