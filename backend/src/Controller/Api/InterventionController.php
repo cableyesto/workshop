@@ -376,6 +376,62 @@ final class InterventionController extends AbstractAuthenticatedController
         }
     }
 
+    #[Route('/api/interventions/{id<\d+>}/tasks', name: 'api_interventions_tasks', methods: ['GET'])]
+    public function getTasks(int $id): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $this->logger->info('Get intervention tasks request', [
+            'garage_id' => $garageId,
+            'intervention_id' => $id,
+        ]);
+
+        try {
+            $intervention = $this->interventionRepository->find($id);
+
+            if (!$intervention) {
+                return $this->json([
+                    'error' => 'Intervention not found',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Check authorization
+            if ($intervention->getCar()->getClient()->getGarage()->getId() !== $garageId) {
+                return $this->json([
+                    'error' => 'Unauthorized',
+                ], JsonResponse::HTTP_FORBIDDEN);
+            }
+
+            $tasks = Collection::make($intervention->getInterventionTasks())
+                ->map(function ($interventionTask) {
+                    $serviceTask = $interventionTask->getServiceTask();
+
+                    return [
+                        'id' => $serviceTask->getId(),
+                        'name' => $serviceTask->getName(),
+                        'quantity' => $interventionTask->getQuantity(),
+                        'unitPrice' => (float) $serviceTask->getUnitPrice(),
+                    ];
+                })
+                ->toArray();
+
+            return $this->json($tasks);
+        } catch (\Exception $e) {
+            $this->logger->error('Error getting intervention tasks', [
+                'garage_id' => $garageId,
+                'intervention_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json([
+                'error' => 'An error occurred while fetching intervention tasks',
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     #[Route('/api/interventions/search', name: 'api_interventions_search', methods: ['GET'])]
     public function search(Request $request): JsonResponse
     {
