@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
@@ -14,7 +14,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { useUpdateInterventionMutation } from '@/api/interventions'
+import { useInterventionQuery, useUpdateInterventionMutation } from '@/api/interventions'
 
 interface Props {
   interventionId: number | undefined
@@ -55,6 +55,9 @@ const [clientRequest] = defineField('clientRequest')
 const [hasInterventionEndRemark] = defineField('hasInterventionEndRemark')
 const [finalNote] = defineField('finalNote')
 
+// Fetch intervention data (cached from Step 2)
+const { data: interventionData } = useInterventionQuery(props.interventionId, props.isEditMode)
+
 // Setup mutation
 const { mutate: updateIntervention } = useUpdateInterventionMutation(
   () => {
@@ -66,19 +69,17 @@ const { mutate: updateIntervention } = useUpdateInterventionMutation(
   },
 )
 
-// Load existing data in edit mode
-onMounted(async () => {
-  if (props.isEditMode && props.interventionId) {
-    // TODO: Load intervention data from API
-    // const data = await getInterventionAPI(props.interventionId)
-    // setValues({
-    //   hasClientRemark: data.clientRemark ? 'true' : 'false',
-    //   clientRequest: data.clientRequest || '',
-    //   hasInterventionEndRemark: data.interventionEndRemark ? 'true' : 'false',
-    //   finalNote: data.finalNote || '',
-    // })
+// Watch for intervention data and populate form
+watch(interventionData, (data) => {
+  if (data && props.isEditMode) {
+    setValues({
+      hasClientRemark: data.clientRemark ? 'true' : 'false',
+      clientRequest: data.clientRequest || '',
+      hasInterventionEndRemark: data.interventionEndRemark ? 'true' : 'false',
+      finalNote: data.finalNote || '',
+    })
   }
-})
+}, { immediate: true })
 
 const onSubmit = handleSubmit(async (values) => {
   if (!props.interventionId) {

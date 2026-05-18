@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import MechanicCombobox from './MechanicCombobox.vue'
 import { useMechanicsQuery } from '@/api/employees'
-import { getInterventionAPI, useUpdateInterventionMutation } from '@/api/interventions'
+import { useInterventionQuery, useUpdateInterventionMutation } from '@/api/interventions'
 import type { InterventionType, DocumentType, InterventionStatus } from '@/types/intervention'
 
 interface Props {
@@ -52,6 +52,9 @@ const currentStatus = ref<InterventionStatus>('Assigned')
 
 // Fetch mechanics
 const { data: mechanics, isLoading: mechanicsLoading } = useMechanicsQuery()
+
+// Fetch intervention data (cached, only in edit mode)
+const { data: interventionData } = useInterventionQuery(props.interventionId, props.isEditMode)
 
 // Computed mechanic options for combobox
 const mechanicOptions = computed(() => {
@@ -132,26 +135,20 @@ const { mutate: updateIntervention } = useUpdateInterventionMutation(
   },
 )
 
-// Load existing data in edit mode
-onMounted(async () => {
-  if (props.isEditMode && props.interventionId) {
-    try {
-      const data = await getInterventionAPI(props.interventionId)
-      setValues({
-        interventionType: data.interventionType || 'Repair',
-        documentType: data.documentType || 'Estimate',
-        mechanicId: data.mechanic.id,
-        licensePlate: data.car.licensePlate,
-        date: data.date,
-        startTime: data.startTime,
-      })
-      currentStatus.value = data.status
-    } catch (error) {
-      console.error('Error loading intervention:', error)
-      alert('Erreur lors du chargement de l\'intervention')
-    }
+// Watch for intervention data and populate form
+watch(interventionData, (data) => {
+  if (data && props.isEditMode) {
+    setValues({
+      interventionType: data.interventionType || 'Repair',
+      documentType: data.documentType || 'Estimate',
+      mechanicId: data.mechanic.id,
+      licensePlate: data.car.licensePlate,
+      date: data.date,
+      startTime: data.startTime,
+    })
+    currentStatus.value = data.status
   }
-})
+}, { immediate: true })
 
 function formatLicensePlate(event: Event) {
   hasAttemptedSubmit.value = false

@@ -26,6 +26,18 @@ export function useSearchInterventionQuery(mechanicId: number, licensePlate: str
   })
 }
 
+/**
+ * Fetch intervention by ID (cached across steps)
+ */
+export function useInterventionQuery(interventionId: number | undefined, enabled: boolean) {
+  return useQuery({
+    key: ['interventions', interventionId ?? 0],
+    query: () => getInterventionAPI(interventionId!),
+    enabled: enabled && !!interventionId,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+  })
+}
+
 // ============================================
 // API FUNCTIONS
 // ============================================

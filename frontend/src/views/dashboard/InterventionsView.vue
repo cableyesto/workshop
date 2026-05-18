@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import InterventionStep1 from '@/components/interventions/InterventionStep1.vue'
-import InterventionStep2 from '@/components/interventions/InterventionStep2.vue'
-import InterventionStep3 from '@/components/interventions/InterventionStep3.vue'
+import { ref, defineAsyncComponent } from 'vue'
 import InterventionSearchResult from '@/components/interventions/InterventionSearchResult.vue'
 import { apiRequest } from '@/api/helpers'
 import type { SearchInterventionResponse } from '@/types/intervention'
+
+// Lazy load step components
+const InterventionStep1 = defineAsyncComponent(
+  () => import('@/components/interventions/InterventionStep1.vue'),
+)
+const InterventionStep2 = defineAsyncComponent(
+  () => import('@/components/interventions/InterventionStep2.vue'),
+)
+const InterventionStep3 = defineAsyncComponent(
+  () => import('@/components/interventions/InterventionStep3.vue'),
+)
 
 // Wizard state
 const currentStep = ref(1)
