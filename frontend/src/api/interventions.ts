@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@pinia/colada'
+import { useQuery, useMutation, useQueryCache } from '@pinia/colada'
 import { apiRequest } from './helpers'
 import type {
   Intervention,
@@ -72,6 +72,8 @@ export function useUpdateInterventionMutation(
   onSuccessCallback: () => void,
   onErrorCallback: (error: Error) => void,
 ) {
+  const queryCache = useQueryCache()
+
   return useMutation({
     key: ['update-intervention'],
     mutation: ({
@@ -82,6 +84,8 @@ export function useUpdateInterventionMutation(
       data: UpdateInterventionPayload
     }) => updateInterventionAPI(interventionId, data),
     onSuccess: () => {
+      // Invalidate intervention cache to ensure fresh data
+      queryCache.invalidateQueries({ key: ['interventions'] })
       onSuccessCallback()
     },
     onError: (error) => {
