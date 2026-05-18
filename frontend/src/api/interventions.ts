@@ -5,6 +5,7 @@ import type {
   SearchInterventionResponse,
   UpdateInterventionPayload,
 } from '../types/intervention'
+import type { Task } from '../types/task'
 
 // ============================================
 // QUERIES
@@ -92,6 +93,14 @@ export async function updateInterventionAPI(
       body: JSON.stringify(data),
     },
     'Failed to update intervention',
+  )
+}
+
+export async function getInterventionTasksAPI(interventionId: number): Promise<Task[]> {
+  return apiRequest<Task[]>(
+    `/api/interventions/${interventionId}/tasks`,
+    {},
+    'Failed to fetch intervention tasks',
   )
 }
 

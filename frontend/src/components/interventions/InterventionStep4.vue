@@ -16,7 +16,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import type { Act, ActPayload } from '@/types/act'
+import type { Task, TaskPayload } from '@/types/task'
 
 interface Props {
   interventionId: number | undefined
@@ -31,46 +31,46 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-// Local state for acts
-const acts = ref<Act[]>([])
-const showActDialog = ref(false)
-const editingAct = ref<Act | null>(null)
+// Local state for tasks
+const tasks = ref<Task[]>([])
+const showTaskDialog = ref(false)
+const editingTask = ref<Task | null>(null)
 
-function handleAddAct() {
-  editingAct.value = null
-  showActDialog.value = true
+function handleAddTask() {
+  editingTask.value = null
+  showTaskDialog.value = true
 }
 
-function handleEditAct(act: Act) {
-  editingAct.value = act
-  showActDialog.value = true
+function handleEditTask(task: Task) {
+  editingTask.value = task
+  showTaskDialog.value = true
 }
 
-function handleSaveAct(payload: ActPayload) {
-  if (editingAct.value) {
-    // Edit existing act
-    const index = acts.value.findIndex((a) => a.id === editingAct.value!.id)
+function handleSaveTask(payload: TaskPayload) {
+  if (editingTask.value) {
+    // Edit existing task
+    const index = tasks.value.findIndex((t) => t.id === editingTask.value!.id)
     if (index !== -1) {
-      acts.value[index] = { ...payload, id: editingAct.value.id }
+      tasks.value[index] = { ...payload, id: editingTask.value.id }
     }
   } else {
-    // Add new act (temporary ID until backend save)
-    const newAct: Act = {
+    // Add new task (temporary ID until backend save)
+    const newTask: Task = {
       ...payload,
       id: Date.now(),
     }
-    acts.value.push(newAct)
+    tasks.value.push(newTask)
   }
-  showActDialog.value = false
+  showTaskDialog.value = false
 }
 
 function handleCancelDialog() {
-  showActDialog.value = false
-  editingAct.value = null
+  showTaskDialog.value = false
+  editingTask.value = null
 }
 
 function handleValidate() {
-  // TODO: Save acts to backend
+  // TODO: Save tasks to backend
   emit('next')
 }
 </script>
@@ -96,12 +96,12 @@ function handleValidate() {
       </BreadcrumbList>
     </Breadcrumb>
 
-    <!-- Add Act Button -->
+    <!-- Add Task Button -->
     <div>
-      <Button @click="handleAddAct">Ajouter un acte</Button>
+      <Button @click="handleAddTask">Ajouter un acte</Button>
     </div>
 
-    <!-- Acts Table -->
+    <!-- Tasks Table -->
     <div class="border rounded-lg">
       <Table>
         <TableHeader>
@@ -113,19 +113,19 @@ function handleValidate() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow v-if="acts.length === 0">
+          <TableRow v-if="tasks.length === 0">
             <TableCell colspan="4" class="text-center text-muted-foreground py-8">
               Aucun acte ajouté
             </TableCell>
           </TableRow>
-          <TableRow v-for="act in acts" :key="act.id">
-            <TableCell>{{ act.name }}</TableCell>
-            <TableCell>{{ act.quantity }}</TableCell>
-            <TableCell>{{ act.unitPrice.toFixed(2) }}</TableCell>
+          <TableRow v-for="task in tasks" :key="task.id">
+            <TableCell>{{ task.name }}</TableCell>
+            <TableCell>{{ task.quantity }}</TableCell>
+            <TableCell>{{ task.unitPrice.toFixed(2) }}</TableCell>
             <TableCell>
               <button
                 class="text-blue-600 hover:underline cursor-pointer"
-                @click="handleEditAct(act)"
+                @click="handleEditTask(task)"
               >
                 Modification
               </button>
@@ -141,6 +141,6 @@ function handleValidate() {
       <Button type="button" @click="handleValidate">Valider</Button>
     </div>
 
-    <!-- TODO: Add ActDialog component here -->
+    <!-- TODO: Add TaskDialog component here -->
   </div>
 </template>
