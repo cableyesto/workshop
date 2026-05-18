@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -16,6 +16,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { useInterventionTasksQuery } from '@/api/interventions'
 import type { Task, TaskPayload } from '@/types/task'
 
 interface Props {
@@ -31,10 +32,24 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
+// Fetch tasks data (cached, only in edit mode)
+const { data: tasksData } = useInterventionTasksQuery(props.interventionId, props.isEditMode)
+
 // Local state for tasks
 const tasks = ref<Task[]>([])
 const showTaskDialog = ref(false)
 const editingTask = ref<Task | null>(null)
+
+// Watch for tasks data and populate table
+watch(
+  tasksData,
+  (data) => {
+    if (data && props.isEditMode) {
+      tasks.value = [...data]
+    }
+  },
+  { immediate: true },
+)
 
 function handleAddTask() {
   editingTask.value = null

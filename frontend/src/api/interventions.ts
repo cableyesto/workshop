@@ -39,6 +39,18 @@ export function useInterventionQuery(interventionId: number | undefined, enabled
   })
 }
 
+/**
+ * Fetch intervention tasks by intervention ID (cached)
+ */
+export function useInterventionTasksQuery(interventionId: number | undefined, enabled: boolean) {
+  return useQuery({
+    key: ['interventions', interventionId ?? 0, 'tasks'],
+    query: () => getInterventionTasksAPI(interventionId!),
+    enabled: enabled && !!interventionId,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+  })
+}
+
 // ============================================
 // API FUNCTIONS
 // ============================================
