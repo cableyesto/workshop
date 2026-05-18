@@ -14,15 +14,15 @@ export interface Intervention {
     id: number
     licensePlate: string
   }
-  startDate?: string
-  startTime?: string
+  date: string
+  startTime: string
   status: InterventionStatus
-  interventionType?: InterventionType | null
-  documentType?: DocumentType | null
-  clientRemark?: boolean
-  clientNeed?: string | null
-  interventionEndRemark?: boolean
-  interventionEndNote?: string | null
+  interventionType: InterventionType | null
+  documentType: DocumentType | null
+  clientRemark: boolean
+  clientRequest: string | null
+  interventionEndRemark: boolean
+  finalNote: string | null
 }
 
 export interface SearchInterventionResponse {

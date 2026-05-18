@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from '@pinia/colada'
 import { apiRequest } from './helpers'
 import type {
+  Intervention,
   SearchInterventionResponse,
   UpdateInterventionPayload,
 } from '../types/intervention'
@@ -28,6 +29,14 @@ export function useSearchInterventionQuery(mechanicId: number, licensePlate: str
 // ============================================
 // API FUNCTIONS
 // ============================================
+
+export async function getInterventionAPI(interventionId: number): Promise<Intervention> {
+  return apiRequest<Intervention>(
+    `/api/interventions/${interventionId}`,
+    {},
+    'Failed to fetch intervention',
+  )
+}
 
 export async function updateInterventionAPI(
   interventionId: number,

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import MechanicCombobox from './MechanicCombobox.vue'
 import { useMechanicsQuery } from '@/api/employees'
-import { useUpdateInterventionMutation } from '@/api/interventions'
+import { getInterventionAPI, useUpdateInterventionMutation } from '@/api/interventions'
 import type { InterventionType, DocumentType, InterventionStatus } from '@/types/intervention'
 
 interface Props {
@@ -135,17 +135,21 @@ const { mutate: updateIntervention } = useUpdateInterventionMutation(
 // Load existing data in edit mode
 onMounted(async () => {
   if (props.isEditMode && props.interventionId) {
-    // TODO: Load intervention data from API
-    // const data = await apiRequest<Intervention>(`/api/interventions/${props.interventionId}`)
-    // setValues({
-    //   interventionType: data.interventionType,
-    //   documentType: data.documentType,
-    //   mechanicId: data.mechanic.id,
-    //   licensePlate: data.car.licensePlate,
-    //   date: data.startDate,
-    //   startTime: data.startTime,
-    // })
-    // currentStatus.value = data.status
+    try {
+      const data = await getInterventionAPI(props.interventionId)
+      setValues({
+        interventionType: data.interventionType || 'Repair',
+        documentType: data.documentType || 'Estimate',
+        mechanicId: data.mechanic.id,
+        licensePlate: data.car.licensePlate,
+        date: data.date,
+        startTime: data.startTime,
+      })
+      currentStatus.value = data.status
+    } catch (error) {
+      console.error('Error loading intervention:', error)
+      alert('Erreur lors du chargement de l\'intervention')
+    }
   }
 })
 

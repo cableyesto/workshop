@@ -311,7 +311,7 @@ final class InterventionController extends AbstractAuthenticatedController
         }
     }
 
-    #[Route('/api/interventions/{id}', name: 'api_interventions_get', methods: ['GET'])]
+    #[Route('/api/interventions/{id<\d+>}', name: 'api_interventions_get', methods: ['GET'])]
     public function get(int $id): JsonResponse
     {
         $garageId = $this->getAuthenticatedGarageId();
