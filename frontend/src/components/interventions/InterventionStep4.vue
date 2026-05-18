@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -17,6 +17,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { useInterventionTasksQuery } from '@/api/interventions'
+import TaskDialog from './TaskDialog.vue'
 import type { Task, TaskPayload } from '@/types/task'
 
 interface Props {
@@ -40,6 +41,9 @@ const tasks = ref<Task[]>([])
 const showTaskDialog = ref(false)
 const editingTask = ref<Task | null>(null)
 
+// Dialog mode
+const dialogMode = computed(() => (editingTask.value ? 'edit' : 'create'))
+
 // Watch for tasks data and populate table
 watch(
   tasksData,
@@ -62,14 +66,23 @@ function handleEditTask(task: Task) {
 }
 
 function handleSaveTask(payload: TaskPayload) {
+  if (!props.interventionId) {
+    alert('Erreur: ID intervention manquant')
+    return
+  }
+
   if (editingTask.value) {
-    // Edit existing task
+    // TODO: Call PATCH API to update task on backend
+    console.log('Update task:', editingTask.value.id, payload)
+    // For now, update locally
     const index = tasks.value.findIndex((t) => t.id === editingTask.value!.id)
     if (index !== -1) {
       tasks.value[index] = { ...payload, id: editingTask.value.id }
     }
   } else {
-    // Add new task (temporary ID until backend save)
+    // TODO: Call POST API to create task on backend
+    console.log('Create task for intervention:', props.interventionId, payload)
+    // For now, add locally with temporary ID
     const newTask: Task = {
       ...payload,
       id: Date.now(),
@@ -77,9 +90,10 @@ function handleSaveTask(payload: TaskPayload) {
     tasks.value.push(newTask)
   }
   showTaskDialog.value = false
+  editingTask.value = null
 }
 
-function handleCancelDialog() {
+function handleCloseDialog() {
   showTaskDialog.value = false
   editingTask.value = null
 }
@@ -156,6 +170,13 @@ function handleValidate() {
       <Button type="button" @click="handleValidate">Valider</Button>
     </div>
 
-    <!-- TODO: Add TaskDialog component here -->
+    <!-- Task Dialog -->
+    <TaskDialog
+      :open="showTaskDialog"
+      :mode="dialogMode"
+      :task="editingTask"
+      @submit="handleSaveTask"
+      @close="handleCloseDialog"
+    />
   </div>
 </template>
