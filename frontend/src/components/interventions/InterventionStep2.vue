@@ -175,12 +175,15 @@ const onSubmit = handleSubmit(
       return
     }
 
-    // TODO: Update to send all fields to backend
     updateIntervention({
       interventionId: props.interventionId,
       data: {
         interventionType: values.interventionType as InterventionType,
         documentType: values.documentType as DocumentType,
+        mechanicId: values.mechanicId,
+        licensePlate: values.licensePlate,
+        date: values.date,
+        startTime: values.startTime,
       },
     })
   },

@@ -34,6 +34,10 @@ export interface SearchInterventionResponse {
 export interface UpdateInterventionPayload {
   interventionType?: InterventionType
   documentType?: DocumentType
+  mechanicId?: number
+  licensePlate?: string
+  date?: string
+  startTime?: string
   clientRequest?: string
   finalNote?: string
 }
