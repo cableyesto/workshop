@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, defineAsyncComponent } from 'vue'
 import InterventionSearchResult from '@/components/interventions/InterventionSearchResult.vue'
-import { apiRequest } from '@/api/helpers'
+import { searchInterventionAPI, createInterventionAPI } from '@/api/interventions'
 import type { SearchInterventionResponse } from '@/types/intervention'
 
 // Lazy load step components
@@ -32,16 +32,10 @@ async function handleSearch() {
   }
 
   try {
-    const result = await apiRequest<SearchInterventionResponse>(
-      `/api/interventions/search?mechanicId=${mechanicId.value}&licensePlate=${licensePlate.value}`,
-      {},
-      'Failed to search intervention',
-    )
-
-    searchResult.value = result
+    searchResult.value = await searchInterventionAPI(mechanicId.value, licensePlate.value)
     showSearchResult.value = true
   } catch (error) {
-    console.error('Create error:', error)
+    console.error('Search error:', error)
   }
 }
 
@@ -53,20 +47,7 @@ async function handleCreate() {
   }
 
   try {
-    const response = await apiRequest<{ id: number }>(
-      '/api/interventions',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          mechanicId: mechanicId.value,
-          licensePlate: licensePlate.value,
-        }),
-      },
-      'Failed to create intervention',
-    )
+    const response = await createInterventionAPI(mechanicId.value, licensePlate.value)
 
     interventionId.value = response.id
     isEditMode.value = false

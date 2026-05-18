@@ -42,6 +42,37 @@ export function useInterventionQuery(interventionId: number | undefined, enabled
 // API FUNCTIONS
 // ============================================
 
+export async function searchInterventionAPI(
+  mechanicId: number,
+  licensePlate: string,
+): Promise<SearchInterventionResponse> {
+  return apiRequest<SearchInterventionResponse>(
+    `/api/interventions/search?mechanicId=${mechanicId}&licensePlate=${licensePlate}`,
+    {},
+    'Failed to search intervention',
+  )
+}
+
+export async function createInterventionAPI(
+  mechanicId: number,
+  licensePlate: string,
+): Promise<{ id: number }> {
+  return apiRequest<{ id: number }>(
+    '/api/interventions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        mechanicId,
+        licensePlate,
+      }),
+    },
+    'Failed to create intervention',
+  )
+}
+
 export async function getInterventionAPI(interventionId: number): Promise<Intervention> {
   return apiRequest<Intervention>(
     `/api/interventions/${interventionId}`,
