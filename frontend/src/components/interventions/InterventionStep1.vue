@@ -7,17 +7,7 @@ import { useMechanicsQuery } from '../../api/employees'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Check, ChevronsUpDown } from 'lucide-vue-next'
-import { cn } from '@/lib/utils'
+import MechanicCombobox from './MechanicCombobox.vue'
 
 interface Props {
   mechanicId: number | undefined
@@ -33,7 +23,6 @@ const emit = defineEmits<{
 }>()
 
 const hasAttemptedSubmit = ref(false)
-const mechanicComboboxOpen = ref(false)
 
 // Fetch mechanics
 const { data: mechanics, isLoading: mechanicsLoading } = useMechanicsQuery()
@@ -45,13 +34,6 @@ const mechanicOptions = computed(() => {
     value: m.id,
     label: `${m.firstName} ${m.lastName}`,
   }))
-})
-
-// Selected mechanic label
-const selectedMechanicLabel = computed(() => {
-  if (!props.mechanicId) return 'Sélectionnez un mécanicien'
-  const mechanic = mechanics.value?.find((m) => m.id === props.mechanicId)
-  return mechanic ? `${mechanic.firstName} ${mechanic.lastName}` : 'Sélectionnez un mécanicien'
 })
 
 // Validation schema
@@ -113,10 +95,9 @@ function formatLicensePlate(event: Event) {
   emit('update:licensePlate', value)
 }
 
-function selectMechanic(id: number) {
+function updateMechanicId(id: number | undefined) {
   mechanicId.value = id
   emit('update:mechanicId', id)
-  mechanicComboboxOpen.value = false
 }
 </script>
 
@@ -126,47 +107,12 @@ function selectMechanic(id: number) {
     <FieldGroup class="gap-2">
       <FieldLabel for="mechanic">Mécanicien</FieldLabel>
       <Field>
-        <Popover v-model:open="mechanicComboboxOpen">
-          <PopoverTrigger as-child>
-            <Button
-              variant="outline"
-              role="combobox"
-              :aria-expanded="mechanicComboboxOpen"
-              class="w-96 justify-between"
-            >
-              {{ selectedMechanicLabel }}
-              <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <!-- <PopoverContent class="w-96 p-0"> -->
-          <PopoverContent class="w-112 p-0">
-            <Command>
-              <CommandInput placeholder="Rechercher un mécanicien..." />
-              <CommandList>
-                <CommandEmpty v-if="!mechanicsLoading">Aucun mécanicien trouvé.</CommandEmpty>
-                <CommandEmpty v-else>Chargement...</CommandEmpty>
-                <CommandGroup>
-                  <CommandItem
-                    v-for="option in mechanicOptions"
-                    :key="option.value"
-                    :value="option.label"
-                    @select="selectMechanic(option.value)"
-                  >
-                    <Check
-                      :class="
-                        cn(
-                          'mr-2 h-4 w-4',
-                          mechanicId === option.value ? 'opacity-100' : 'opacity-0',
-                        )
-                      "
-                    />
-                    {{ option.label }}
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <MechanicCombobox
+          :model-value="mechanicId"
+          :options="mechanicOptions"
+          :loading="mechanicsLoading"
+          @update:model-value="updateMechanicId"
+        />
         <FieldError v-if="hasAttemptedSubmit && errors.mechanicId">{{
           errors.mechanicId
         }}</FieldError>
