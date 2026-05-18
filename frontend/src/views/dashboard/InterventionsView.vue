@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import InterventionStep1 from '@/components/interventions/InterventionStep1.vue'
 import InterventionStep2 from '@/components/interventions/InterventionStep2.vue'
+import InterventionStep3 from '@/components/interventions/InterventionStep3.vue'
 import InterventionSearchResult from '@/components/interventions/InterventionSearchResult.vue'
 import { apiRequest } from '@/api/helpers'
 import type { SearchInterventionResponse } from '@/types/intervention'
@@ -87,8 +88,12 @@ function handleStepBack() {
 }
 
 function handleStep2Complete() {
-  // TODO: Move to Step 3 when ready
-  console.log('Step 2 complete')
+  currentStep.value = 3
+}
+
+function handleStep3Complete() {
+  // TODO: Move to Step 4 when ready
+  console.log('Step 3 complete')
   resetWizard()
 }
 
@@ -130,6 +135,19 @@ function resetWizard() {
           :mechanic-id="mechanicId"
           :license-plate="licensePlate"
           @next="handleStep2Complete"
+          @back="handleStepBack"
+          @cancel="handleCancelWizard"
+        />
+      </div>
+    </div>
+
+    <!-- Step 3: Remarks -->
+    <div v-if="currentStep === 3" class="flex justify-center">
+      <div class="w-full max-w-4xl">
+        <InterventionStep3
+          :intervention-id="interventionId"
+          :is-edit-mode="isEditMode"
+          @next="handleStep3Complete"
           @back="handleStepBack"
           @cancel="handleCancelWizard"
         />
