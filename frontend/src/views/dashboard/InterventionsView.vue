@@ -123,10 +123,12 @@ function resetWizard() {
 
     <!-- Step 2: Type Selection -->
     <div v-if="currentStep === 2" class="flex justify-center">
-      <div class="w-full max-w-md">
+      <div class="w-full max-w-4xl">
         <InterventionStep2
           :intervention-id="interventionId"
           :is-edit-mode="isEditMode"
+          :mechanic-id="mechanicId"
+          :license-plate="licensePlate"
           @next="handleStep2Complete"
           @back="handleStepBack"
           @cancel="handleCancelWizard"
