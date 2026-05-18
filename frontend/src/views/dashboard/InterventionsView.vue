@@ -14,6 +14,9 @@ const InterventionStep2 = defineAsyncComponent(
 const InterventionStep3 = defineAsyncComponent(
   () => import('@/components/interventions/InterventionStep3.vue'),
 )
+const InterventionStep4 = defineAsyncComponent(
+  () => import('@/components/interventions/InterventionStep4.vue'),
+)
 
 // Wizard state
 const currentStep = ref(1)
@@ -81,8 +84,11 @@ function handleStep2Complete() {
 }
 
 function handleStep3Complete() {
-  // TODO: Move to Step 4 when ready
-  console.log('Step 3 complete')
+  currentStep.value = 4
+}
+
+function handleStep4Complete() {
+  console.log('Step 4 complete - Intervention finalized')
   resetWizard()
 }
 
@@ -137,6 +143,19 @@ function resetWizard() {
           :intervention-id="interventionId"
           :is-edit-mode="isEditMode"
           @next="handleStep3Complete"
+          @back="handleStepBack"
+          @cancel="handleCancelWizard"
+        />
+      </div>
+    </div>
+
+    <!-- Step 4: Acts/Tasks -->
+    <div v-if="currentStep === 4" class="flex justify-center">
+      <div class="w-full max-w-4xl">
+        <InterventionStep4
+          :intervention-id="interventionId"
+          :is-edit-mode="isEditMode"
+          @next="handleStep4Complete"
           @back="handleStepBack"
           @cancel="handleCancelWizard"
         />
