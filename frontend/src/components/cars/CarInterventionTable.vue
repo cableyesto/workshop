@@ -21,10 +21,10 @@ const emit = defineEmits<{
 }>()
 
 const statusLabels: Record<string, string> = {
-  affectee: '🏷️ Affectée',
-  en_cours: '⏳ En cours',
-  en_pause: '⏸️ En pause',
-  terminee: '✅ Terminée',
+  Active: '⏳ En cours',
+  Paused: '⏸️ En pause',
+  Assigned: '🏷️ Affectée',
+  Completed: '✅ Terminée',
 }
 </script>
 
@@ -48,7 +48,7 @@ const statusLabels: Record<string, string> = {
           <TableCell>{{ car.model }}</TableCell>
           <TableCell>{{ car.color }}</TableCell>
           <TableCell>{{ car.licensePlate }}</TableCell>
-          <TableCell>{{ statusLabels[car.intervention.status] }}</TableCell>
+          <TableCell>{{ statusLabels[car.intervention.globalStatus] }}</TableCell>
           <TableCell>
             <button
               class="text-blue-600 hover:underline cursor-pointer"

@@ -83,7 +83,7 @@ final class CarService
                 'color' => $car->getColor()->getName(),
                 'client' => $this->mapClient($car->getClient()),
                 'intervention' => [
-                    'status' => $this->calculateGlobalStatus($car),
+                    'globalStatus' => $this->calculateGlobalStatus($car),
                 ],
             ])
             ->values()
@@ -98,7 +98,7 @@ final class CarService
         $cars = $this->carRepository->findCarsForRestitution($garageId);
 
         return Collection::make($cars)
-            ->filter(fn($car) => $this->calculateGlobalStatus($car) === 'terminee')
+            ->filter(fn($car) => $this->calculateGlobalStatus($car) === 'Completed')
             ->map(fn($car) => [
                 'id' => $car->getId(),
                 'manufacturer' => $car->getManufacturer(),
@@ -107,7 +107,7 @@ final class CarService
                 'color' => $car->getColor()->getName(),
                 'client' => $this->mapClient($car->getClient()),
                 'intervention' => [
-                    'status' => 'terminee',
+                    'globalStatus' => 'Completed',
                 ],
             ])
             ->values()
@@ -130,14 +130,15 @@ final class CarService
     }
 
     /**
-     * Calculate global intervention status for a car
+     * Calculate global intervention status for a car (aggregated across all interventions)
+     * Returns the highest-priority status among all interventions
      */
     private function calculateGlobalStatus($car): string
     {
         $interventions = $car->getInterventions();
 
         if ($interventions->isEmpty()) {
-            return 'affectee';
+            return 'Assigned';
         }
 
         $hasInProgress = false;
@@ -156,17 +157,18 @@ final class CarService
             }
         }
 
+        // Priority order: Active > Paused > Assigned > Completed
         if ($hasInProgress) {
-            return 'en_cours';
+            return 'Active';
         }
         if ($hasPaused) {
-            return 'en_pause';
+            return 'Paused';
         }
         if ($hasAssigned) {
-            return 'affectee';
+            return 'Assigned';
         }
 
-        return 'terminee';
+        return 'Completed';
     }
 
     /**

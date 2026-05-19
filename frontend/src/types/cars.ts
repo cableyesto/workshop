@@ -16,8 +16,11 @@ export interface Car extends StoredCar {
   isStored: boolean
 }
 
+// Aggregated status across all interventions for a car
+export type CarStatus = 'Active' | 'Paused' | 'Assigned' | 'Completed'
+
 export interface CarWithIntervention extends StoredCar {
   intervention: {
-    status: 'affectee' | 'en_cours' | 'en_pause' | 'terminee'
+    globalStatus: CarStatus
   }
 }
