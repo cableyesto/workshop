@@ -16,7 +16,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { useInterventionTasksQuery } from '@/api/interventions'
+import {
+  useInterventionTasksQuery,
+  useCreateInterventionTaskMutation,
+  useUpdateInterventionTaskMutation,
+} from '@/api/intervention-tasks'
 import TaskDialog from './TaskDialog.vue'
 import type { Task, TaskPayload } from '@/types/task'
 
@@ -55,6 +59,36 @@ watch(
   { immediate: true },
 )
 
+// Setup mutations
+const { mutate: createTask } = useCreateInterventionTaskMutation(
+  (task) => {
+    // Add to local list
+    tasks.value.push(task)
+    showTaskDialog.value = false
+    editingTask.value = null
+  },
+  (error) => {
+    console.error('Error creating task:', error)
+    alert('Erreur: ' + error.message)
+  },
+)
+
+const { mutate: updateTask } = useUpdateInterventionTaskMutation(
+  (task) => {
+    // Update in local list
+    const index = tasks.value.findIndex((t) => t.id === task.id)
+    if (index !== -1) {
+      tasks.value[index] = task
+    }
+    showTaskDialog.value = false
+    editingTask.value = null
+  },
+  (error) => {
+    console.error('Error updating task:', error)
+    alert('Erreur: ' + error.message)
+  },
+)
+
 function handleAddTask() {
   editingTask.value = null
   showTaskDialog.value = true
@@ -72,25 +106,19 @@ function handleSaveTask(payload: TaskPayload) {
   }
 
   if (editingTask.value) {
-    // TODO: Call PATCH API to update task on backend
-    console.log('Update task:', editingTask.value.id, payload)
-    // For now, update locally
-    const index = tasks.value.findIndex((t) => t.id === editingTask.value!.id)
-    if (index !== -1) {
-      tasks.value[index] = { ...payload, id: editingTask.value.id }
-    }
+    // Update existing task
+    updateTask({
+      interventionId: props.interventionId,
+      serviceTaskId: editingTask.value.id,
+      data: payload,
+    })
   } else {
-    // TODO: Call POST API to create task on backend
-    console.log('Create task for intervention:', props.interventionId, payload)
-    // For now, add locally with temporary ID
-    const newTask: Task = {
-      ...payload,
-      id: Date.now(),
-    }
-    tasks.value.push(newTask)
+    // Create new task
+    createTask({
+      interventionId: props.interventionId,
+      data: payload,
+    })
   }
-  showTaskDialog.value = false
-  editingTask.value = null
 }
 
 function handleCloseDialog() {
