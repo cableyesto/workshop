@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import InterventionStep1 from '@/components/interventions/InterventionStep1.vue'
 
-const mechanicId = ref<number | null>(null)
+const mechanicId = ref<number | undefined>(undefined)
 const licensePlate = ref('')
 
 function handleSearch() {

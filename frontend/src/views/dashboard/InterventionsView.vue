@@ -35,6 +35,7 @@ async function handleSearch() {
   }
 
   try {
+    // API not cached fetch
     searchResult.value = await searchInterventionAPI(mechanicId.value, licensePlate.value)
     showSearchResult.value = true
   } catch (error) {

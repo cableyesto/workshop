@@ -693,7 +693,7 @@ final class InterventionController extends AbstractAuthenticatedController
                             'id' => $intervention->getCar()->getId(),
                             'licensePlate' => $intervention->getCar()->getLicensePlate(),
                         ],
-                        'startDate' => $intervention->getDate()?->format('Y-m-d'),
+                        'date' => $intervention->getDate()?->format('Y-m-d'),
                         'startTime' => $intervention->getStartTime()?->format('H:i'),
                         'status' => $this->translateStatus($intervention->getStatus()?->value),
                         'interventionType' => $intervention->getType()?->value,

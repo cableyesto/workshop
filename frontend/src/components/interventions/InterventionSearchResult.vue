@@ -42,9 +42,9 @@ const emit = defineEmits<{
             <span class="font-semibold">Statut:</span>
             {{ result.intervention.status }}
           </div>
-          <div v-if="result.intervention.startDate">
+          <div v-if="result.intervention.date">
             <span class="font-semibold">Créée le:</span>
-            {{ result.intervention.startDate }}
+            {{ result.intervention.date }}
             <span v-if="result.intervention.startTime">à {{ result.intervention.startTime }}</span>
           </div>
         </div>
