@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\Entity\Intervention;
+use App\Entity\InterventionTask;
+use App\Entity\ServiceTask;
 use App\Enum\DocumentType;
 use App\Enum\InterventionStatus;
 use App\Enum\InterventionType;
 use App\Repository\CarRepository;
 use App\Repository\InterventionRepository;
+use App\Repository\InterventionTaskRepository;
 use App\Repository\MechanicRepository;
+use App\Repository\ServiceTaskRepository;
 use Illuminate\Support\Collection;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -28,6 +32,8 @@ final class InterventionController extends AbstractAuthenticatedController
         private readonly InterventionRepository $interventionRepository,
         private readonly MechanicRepository $mechanicRepository,
         private readonly CarRepository $carRepository,
+        private readonly ServiceTaskRepository $serviceTaskRepository,
+        private readonly InterventionTaskRepository $interventionTaskRepository,
     ) {
         parent::__construct($tokenStorage, $jwtManager, $logger);
     }
@@ -376,7 +382,7 @@ final class InterventionController extends AbstractAuthenticatedController
         }
     }
 
-    #[Route('/api/interventions/{id<\d+>}/tasks', name: 'api_interventions_tasks', methods: ['GET'])]
+    #[Route('/api/interventions/{id<\d+>}/tasks', name: 'api_interventions_tasks_get', methods: ['GET'])]
     public function getTasks(int $id): JsonResponse
     {
         $garageId = $this->getAuthenticatedGarageId();
@@ -428,6 +434,204 @@ final class InterventionController extends AbstractAuthenticatedController
 
             return $this->json([
                 'error' => 'An error occurred while fetching intervention tasks',
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/api/interventions/{id<\d+>}/tasks', name: 'api_interventions_tasks_create', methods: ['POST'])]
+    public function createTask(int $id, Request $request): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $this->logger->info('Create intervention task request', [
+            'garage_id' => $garageId,
+            'intervention_id' => $id,
+            'data' => $data,
+        ]);
+
+        // Validate required fields
+        if (!isset($data['name']) || !isset($data['quantity']) || !isset($data['unitPrice'])) {
+            return $this->json([
+                'error' => 'Missing required fields: name, quantity, unitPrice',
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $intervention = $this->interventionRepository->find($id);
+
+            if (!$intervention) {
+                return $this->json([
+                    'error' => 'Intervention not found',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Check authorization
+            if ($intervention->getCar()->getClient()->getGarage()->getId() !== $garageId) {
+                return $this->json([
+                    'error' => 'Unauthorized',
+                ], JsonResponse::HTTP_FORBIDDEN);
+            }
+
+            // Find or create ServiceTask
+            $serviceTask = $this->serviceTaskRepository->findOneBy(['name' => $data['name']]);
+
+            if (!$serviceTask) {
+                $serviceTask = new ServiceTask();
+                $serviceTask->setName($data['name']);
+                $serviceTask->setUnitPrice((string) $data['unitPrice']);
+
+                $em = $this->serviceTaskRepository->getEntityManager();
+                $em->persist($serviceTask);
+                $em->flush();
+            } else {
+                // Update existing service task price if different
+                $serviceTask->setUnitPrice((string) $data['unitPrice']);
+                $this->serviceTaskRepository->getEntityManager()->flush();
+            }
+
+            // Check if intervention task already exists
+            $existingInterventionTask = $this->interventionTaskRepository->findOneBy([
+                'intervention' => $intervention,
+                'serviceTask' => $serviceTask,
+            ]);
+
+            if ($existingInterventionTask) {
+                return $this->json([
+                    'error' => 'This task already exists for this intervention',
+                ], JsonResponse::HTTP_CONFLICT);
+            }
+
+            // Create InterventionTask
+            $interventionTask = new InterventionTask();
+            $interventionTask->setIntervention($intervention);
+            $interventionTask->setServiceTask($serviceTask);
+            $interventionTask->setQuantity((int) $data['quantity']);
+
+            $em = $this->interventionTaskRepository->getEntityManager();
+            $em->persist($interventionTask);
+            $em->flush();
+
+            $this->logger->info('Intervention task created successfully', [
+                'garage_id' => $garageId,
+                'intervention_id' => $id,
+                'service_task_id' => $serviceTask->getId(),
+            ]);
+
+            return $this->json([
+                'id' => $serviceTask->getId(),
+                'name' => $serviceTask->getName(),
+                'quantity' => $interventionTask->getQuantity(),
+                'unitPrice' => (float) $serviceTask->getUnitPrice(),
+            ], JsonResponse::HTTP_CREATED);
+        } catch (\Exception $e) {
+            $this->logger->error('Error creating intervention task', [
+                'garage_id' => $garageId,
+                'intervention_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json([
+                'error' => 'An error occurred while creating the task',
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/api/interventions/{interventionId<\d+>}/tasks/{serviceTaskId<\d+>}', name: 'api_interventions_tasks_update', methods: ['PATCH'])]
+    public function updateTask(int $interventionId, int $serviceTaskId, Request $request): JsonResponse
+    {
+        $garageId = $this->getAuthenticatedGarageId();
+        if ($garageId instanceof JsonResponse) {
+            return $garageId;
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        $this->logger->info('Update intervention task request', [
+            'garage_id' => $garageId,
+            'intervention_id' => $interventionId,
+            'service_task_id' => $serviceTaskId,
+            'data' => $data,
+        ]);
+
+        try {
+            $intervention = $this->interventionRepository->find($interventionId);
+
+            if (!$intervention) {
+                return $this->json([
+                    'error' => 'Intervention not found',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Check authorization
+            if ($intervention->getCar()->getClient()->getGarage()->getId() !== $garageId) {
+                return $this->json([
+                    'error' => 'Unauthorized',
+                ], JsonResponse::HTTP_FORBIDDEN);
+            }
+
+            $serviceTask = $this->serviceTaskRepository->find($serviceTaskId);
+
+            if (!$serviceTask) {
+                return $this->json([
+                    'error' => 'Service task not found',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Find InterventionTask by composite key
+            $interventionTask = $this->interventionTaskRepository->findOneBy([
+                'intervention' => $intervention,
+                'serviceTask' => $serviceTask,
+            ]);
+
+            if (!$interventionTask) {
+                return $this->json([
+                    'error' => 'Intervention task not found',
+                ], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            // Update quantity if provided
+            if (isset($data['quantity'])) {
+                $interventionTask->setQuantity((int) $data['quantity']);
+            }
+
+            // Update service task details if provided
+            if (isset($data['name'])) {
+                $serviceTask->setName($data['name']);
+            }
+
+            if (isset($data['unitPrice'])) {
+                $serviceTask->setUnitPrice((string) $data['unitPrice']);
+            }
+
+            $this->interventionTaskRepository->getEntityManager()->flush();
+
+            $this->logger->info('Intervention task updated successfully', [
+                'garage_id' => $garageId,
+                'intervention_id' => $interventionId,
+                'service_task_id' => $serviceTaskId,
+            ]);
+
+            return $this->json([
+                'id' => $serviceTask->getId(),
+                'name' => $serviceTask->getName(),
+                'quantity' => $interventionTask->getQuantity(),
+                'unitPrice' => (float) $serviceTask->getUnitPrice(),
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Error updating intervention task', [
+                'garage_id' => $garageId,
+                'intervention_id' => $interventionId,
+                'service_task_id' => $serviceTaskId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->json([
+                'error' => 'An error occurred while updating the task',
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
