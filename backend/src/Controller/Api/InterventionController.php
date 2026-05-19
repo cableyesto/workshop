@@ -695,13 +695,13 @@ final class InterventionController extends AbstractAuthenticatedController
                         ],
                         'date' => $intervention->getDate()?->format('Y-m-d'),
                         'startTime' => $intervention->getStartTime()?->format('H:i'),
-                        'status' => $this->translateStatus($intervention->getStatus()?->value),
+                        'status' => $intervention->getStatus()?->value,
                         'interventionType' => $intervention->getType()?->value,
                         'documentType' => $intervention->getDocumentType()?->value,
                         'clientRemark' => !empty($intervention->getClientRequest()),
-                        'clientNeed' => $intervention->getClientRequest(),
+                        'clientRequest' => $intervention->getClientRequest(),
                         'interventionEndRemark' => !empty($intervention->getFinalNote()),
-                        'interventionEndNote' => $intervention->getFinalNote(),
+                        'finalNote' => $intervention->getFinalNote(),
                     ],
                 ]);
             }
