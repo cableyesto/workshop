@@ -62,7 +62,6 @@ async function handleCreate() {
 }
 
 function handleEdit(id: number) {
-  console.log('Editing intervention:', id)
   showSearchResult.value = false
 
   interventionId.value = id
@@ -89,7 +88,6 @@ function handleStep3Complete() {
 }
 
 function handleStep4Complete() {
-  console.log('Step 4 complete - Intervention finalized')
   resetWizard()
 }
 
