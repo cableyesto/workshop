@@ -5,11 +5,18 @@ import CarRecordTable from './CarRecordTable.vue'
 import ClientFormDialog from './ClientFormDialog.vue'
 import CarEditDialog from './CarEditDialog.vue'
 import CarCreateDialog from './CarCreateDialog.vue'
-import { useAllCarsQuery } from '../../api/cars'
+import { useAllCarsQuery, useUpdateCarStorageByLicensePlateMutation } from '../../api/cars'
 import type { Car } from '../../types/cars'
 import type { Client } from '../../types/client'
 
 const { data: cars, isLoading } = useAllCarsQuery()
+
+const { mutate: updateCarStorage } = useUpdateCarStorageByLicensePlateMutation(
+  () => {},
+  (error) => {
+    alert('Erreur: ' + error.message)
+  },
+)
 
 const isCreateDialogOpen = ref(false)
 const isClientModalOpen = ref(false)
@@ -44,6 +51,10 @@ function handleCloseCarEditDialog() {
 function handleCloseCreateDialog() {
   isCreateDialogOpen.value = false
 }
+
+function handleAddToStorage(licensePlate: string) {
+  updateCarStorage({ licensePlate, isStored: true })
+}
 </script>
 
 <template>
@@ -60,6 +71,7 @@ function handleCloseCreateDialog() {
       :cars="cars"
       @view-client="handleViewClient"
       @edit-car="handleEditCar"
+      @add-to-storage="handleAddToStorage"
     />
 
     <ClientFormDialog

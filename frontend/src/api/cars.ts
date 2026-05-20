@@ -207,7 +207,8 @@ export function useUpdateCarStorageByLicensePlateMutation(
     mutation: ({ licensePlate, isStored }: { licensePlate: string; isStored: boolean }) =>
       updateCarStorageByLicensePlateAPI(licensePlate, isStored),
     onSuccess: () => {
-      queryCache.invalidateQueries({ key: ['cars', 'storage'], exact: true })
+      queryCache.invalidateQueries({ key: ['cars'] })
+      queryCache.invalidateQueries({ key: ['cars', 'storage'] })
       onSuccessCallback()
     },
     onError: (error) => {

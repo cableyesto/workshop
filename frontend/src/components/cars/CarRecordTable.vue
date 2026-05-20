@@ -19,6 +19,7 @@ defineProps<Props>()
 const emit = defineEmits<{
   viewClient: [client: Client]
   editCar: [car: Car]
+  addToStorage: [licensePlate: string]
 }>()
 </script>
 
@@ -33,6 +34,7 @@ const emit = defineEmits<{
           <TableHead>Plaque</TableHead>
           <TableHead>Fiche client</TableHead>
           <TableHead>Modification</TableHead>
+          <TableHead>Ajout au dépôt</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -56,6 +58,16 @@ const emit = defineEmits<{
             >
               Actualiser
             </button>
+          </TableCell>
+          <TableCell>
+            <button
+              v-if="!car.isStored"
+              class="text-blue-600 hover:underline cursor-pointer"
+              @click="emit('addToStorage', car.licensePlate)"
+            >
+              Ajouter
+            </button>
+            <span v-else class="text-gray-400">Au dépôt</span>
           </TableCell>
         </TableRow>
       </TableBody>
