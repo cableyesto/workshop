@@ -21,9 +21,6 @@ class Car
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $manufacturer = null;
-
-    #[ORM\Column(length: 50)]
     private ?string $model = null;
 
     #[ORM\Column(length: 15)]
@@ -57,6 +54,10 @@ class Car
     #[ORM\OneToMany(targetEntity: Intervention::class, mappedBy: 'car')]
     private Collection $interventions;
 
+    #[ORM\ManyToOne(inversedBy: 'cars')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Manufacturer $manufacturer = null;
+
     public function __construct()
     {
         $this->interventions = new ArrayCollection();
@@ -67,12 +68,12 @@ class Car
         return $this->id;
     }
 
-    public function getManufacturer(): ?string
+    public function getManufacturer(): ?Manufacturer
     {
         return $this->manufacturer;
     }
 
-    public function setManufacturer(string $manufacturer): static
+    public function setManufacturer(?Manufacturer $manufacturer): static
     {
         $this->manufacturer = $manufacturer;
 
@@ -204,4 +205,5 @@ class Car
 
         return $this;
     }
+
 }

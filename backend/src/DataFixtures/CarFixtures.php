@@ -24,13 +24,18 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create('fr_FR');
 
-        // Popular French car manufacturers and models
+        // Popular car manufacturers and models
         $carData = [
-            ['Peugeot', ['208', '308', '3008', '5008']],
-            ['Renault', ['Clio', 'Megane', 'Captur', 'Kadjar']],
+            ['Peugeot', ['208', '308', '3008', '5008', '2008']],
+            ['Renault', ['Clio', 'Megane', 'Captur', 'Kadjar', 'Twingo']],
             ['Citroën', ['C3', 'C4', 'C5 Aircross', 'Berlingo']],
             ['Volkswagen', ['Golf', 'Polo', 'Tiguan', 'Passat']],
             ['Toyota', ['Yaris', 'Corolla', 'RAV4', 'C-HR']],
+            ['BMW', ['Série 1', 'Série 3', 'Série 5', 'X3', 'X5']],
+            ['Audi', ['A3', 'A4', 'Q3', 'Q5']],
+            ['Mercedes-Benz', ['Classe A', 'Classe C', 'GLA', 'GLC']],
+            ['Ford', ['Fiesta', 'Focus', 'Puma', 'Kuga']],
+            ['Nissan', ['Micra', 'Qashqai', 'Juke', 'X-Trail']],
         ];
 
         // Create 5 cars WITH all fields (including optional)
@@ -50,7 +55,12 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
                 \App\Entity\Client::class
             );
 
-            $car->setManufacturer($carInfo[0])
+            $manufacturer = $this->getReference(
+                sprintf(ManufacturerFixtures::MANUFACTURER_REFERENCE, $carInfo[0]),
+                \App\Entity\Manufacturer::class
+            );
+
+            $car->setManufacturer($manufacturer)
                 ->setModel($faker->randomElement($carInfo[1]))
                 ->setLicensePlate($this->generateFrenchLicensePlate($faker))
                 ->setColor($color)
@@ -81,7 +91,12 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
                 \App\Entity\Client::class
             );
 
-            $car->setManufacturer($carInfo[0])
+            $manufacturer = $this->getReference(
+                sprintf(ManufacturerFixtures::MANUFACTURER_REFERENCE, $carInfo[0]),
+                \App\Entity\Manufacturer::class
+            );
+
+            $car->setManufacturer($manufacturer)
                 ->setModel($faker->randomElement($carInfo[1]))
                 ->setLicensePlate($this->generateFrenchLicensePlate($faker))
                 ->setColor($color)
@@ -109,6 +124,10 @@ class CarFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return [ColorFixtures::class, ClientFixtures::class];
+        return [
+            ColorFixtures::class,
+            ClientFixtures::class,
+            ManufacturerFixtures::class,
+        ];
     }
 }

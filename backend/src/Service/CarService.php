@@ -11,6 +11,7 @@ use App\Repository\CarRepository;
 use App\Repository\ClientRepository;
 use App\Repository\ColorRepository;
 use App\Repository\GarageRepository;
+use App\Repository\ManufacturerRepository;
 use Illuminate\Support\Collection;
 
 final class CarService
@@ -20,6 +21,7 @@ final class CarService
         private readonly ColorRepository $colorRepository,
         private readonly ClientRepository $clientRepository,
         private readonly GarageRepository $garageRepository,
+        private readonly ManufacturerRepository $manufacturerRepository,
     ) {
     }
 
@@ -33,7 +35,7 @@ final class CarService
         return Collection::make($cars)
             ->map(fn($car) => [
                 'id' => $car->getId(),
-                'manufacturer' => $car->getManufacturer(),
+                'manufacturer' => $car->getManufacturer()->getName(),
                 'model' => $car->getModel(),
                 'licensePlate' => $car->getLicensePlate(),
                 'color' => $car->getColor()->getName(),
@@ -57,7 +59,7 @@ final class CarService
         return Collection::make($cars)
             ->map(fn($car) => [
                 'id' => $car->getId(),
-                'manufacturer' => $car->getManufacturer(),
+                'manufacturer' => $car->getManufacturer()->getName(),
                 'model' => $car->getModel(),
                 'licensePlate' => $car->getLicensePlate(),
                 'color' => $car->getColor()->getName(),
@@ -77,7 +79,7 @@ final class CarService
         return Collection::make($cars)
             ->map(fn($car) => [
                 'id' => $car->getId(),
-                'manufacturer' => $car->getManufacturer(),
+                'manufacturer' => $car->getManufacturer()->getName(),
                 'model' => $car->getModel(),
                 'licensePlate' => $car->getLicensePlate(),
                 'color' => $car->getColor()->getName(),
@@ -101,7 +103,7 @@ final class CarService
             ->filter(fn($car) => $this->calculateGlobalStatus($car) === 'Completed')
             ->map(fn($car) => [
                 'id' => $car->getId(),
-                'manufacturer' => $car->getManufacturer(),
+                'manufacturer' => $car->getManufacturer()->getName(),
                 'model' => $car->getModel(),
                 'licensePlate' => $car->getLicensePlate(),
                 'color' => $car->getColor()->getName(),
@@ -224,7 +226,7 @@ final class CarService
      */
     public function updateCar(
         int $carId,
-        string $manufacturer,
+        string $manufacturerName,
         string $model,
         string $licensePlate,
         string $colorName,
@@ -236,6 +238,13 @@ final class CarService
 
         if (!$car) {
             throw new \RuntimeException('Car not found');
+        }
+
+        // Validate and fetch manufacturer entity
+        $manufacturer = $this->manufacturerRepository->findOneBy(['name' => $manufacturerName]);
+
+        if (!$manufacturer) {
+            throw new \RuntimeException('Manufacturer not found. Please use a valid manufacturer from the database.');
         }
 
         // Validate and fetch color entity
@@ -266,7 +275,7 @@ final class CarService
         string $clientLastName,
         ?string $clientEmail,
         string $clientPhone,
-        string $carManufacturer,
+        string $carManufacturerName,
         string $carModel,
         string $carLicensePlate,
         string $carColorName,
@@ -283,6 +292,12 @@ final class CarService
             $garage = $this->garageRepository->find($garageId);
             if (!$garage) {
                 throw new \RuntimeException('Garage not found');
+            }
+
+            // Validate and fetch manufacturer entity
+            $manufacturer = $this->manufacturerRepository->findOneBy(['name' => $carManufacturerName]);
+            if (!$manufacturer) {
+                throw new \RuntimeException('Manufacturer not found. Please use a valid manufacturer from the database.');
             }
 
             // Validate and fetch color entity
@@ -306,7 +321,7 @@ final class CarService
             // Create car
             $car = new Car();
             $car
-                ->setManufacturer($carManufacturer)
+                ->setManufacturer($manufacturer)
                 ->setModel($carModel)
                 ->setLicensePlate($carLicensePlate)
                 ->setColor($color)
@@ -323,7 +338,7 @@ final class CarService
             // Return created car data
             return [
                 'id' => $car->getId(),
-                'manufacturer' => $car->getManufacturer(),
+                'manufacturer' => $car->getManufacturer()->getName(),
                 'model' => $car->getModel(),
                 'licensePlate' => $car->getLicensePlate(),
                 'color' => $car->getColor()->getName(),

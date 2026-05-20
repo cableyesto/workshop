@@ -26,7 +26,8 @@ final class CarRepository extends ServiceEntityRepository
     public function findAllForGarage(int $garageId): array
     {
         return $this->createQueryBuilder('car')
-            ->select('car', 'color', 'client')
+            ->select('car', 'manufacturer', 'color', 'client')
+            ->join('car.manufacturer', 'manufacturer')
             ->join('car.color', 'color')
             ->join('car.client', 'client')
             ->join('client.garage', 'garage')
@@ -44,7 +45,8 @@ final class CarRepository extends ServiceEntityRepository
     public function findStoredCars(int $garageId): array
     {
         return $this->createQueryBuilder('car')
-            ->select('car', 'color', 'client')
+            ->select('car', 'manufacturer', 'color', 'client')
+            ->join('car.manufacturer', 'manufacturer')
             ->join('car.color', 'color')
             ->join('car.client', 'client')
             ->join('client.garage', 'garage')
@@ -65,7 +67,8 @@ final class CarRepository extends ServiceEntityRepository
     public function findCarsWithInterventions(int $garageId): array
     {
         return $this->createQueryBuilder('car')
-            ->select('car', 'color', 'client', 'interventions')
+            ->select('car', 'manufacturer', 'color', 'client', 'interventions')
+            ->join('car.manufacturer', 'manufacturer')
             ->join('car.color', 'color')
             ->join('car.client', 'client')
             ->join('client.garage', 'garage')
@@ -86,7 +89,8 @@ final class CarRepository extends ServiceEntityRepository
     public function findCarsForRestitution(int $garageId): array
     {
         return $this->createQueryBuilder('car')
-            ->select('car', 'color', 'client', 'interventions')
+            ->select('car', 'manufacturer', 'color', 'client', 'interventions')
+            ->join('car.manufacturer', 'manufacturer')
             ->join('car.color', 'color')
             ->join('car.client', 'client')
             ->join('client.garage', 'garage')
