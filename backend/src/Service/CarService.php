@@ -191,6 +191,13 @@ final class CarService
         }
 
         $car->setIsStored($isStored);
+
+        // Reset client callback status when car is retrieved from storage
+        if ($isStored === false) {
+            $client = $car->getClient();
+            $client->setIsClientCalledBack(false);
+        }
+
         $this->carRepository->getEntityManager()->flush();
     }
 
