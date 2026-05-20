@@ -4,6 +4,7 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { z } from 'zod'
 import { useCreateCarWithClientMutation } from '../../api/cars'
+import { useManufacturersQuery } from '../../api/manufacturers'
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup, FieldLabel, FieldError } from '@/components/ui/field'
+import ManufacturerCombobox from './ManufacturerCombobox.vue'
 
 interface Props {
   open: boolean
@@ -154,6 +156,17 @@ const [color, colorAttrs] = defineStep2Field('color')
 const [registrationYear, registrationYearAttrs] = defineStep3Field('registrationYear')
 const [registrationMonth, registrationMonthAttrs] = defineStep3Field('registrationMonth')
 const [mileage, mileageAttrs] = defineStep3Field('mileage')
+
+// Fetch manufacturers
+const { data: manufacturers, isLoading: isLoadingManufacturers } = useManufacturersQuery()
+
+const manufacturerOptions = computed(() => {
+  if (!manufacturers.value) return []
+  return manufacturers.value.map((m) => ({
+    value: m.name,
+    label: m.name,
+  }))
+})
 
 const { mutate: createCarWithClient, isLoading } = useCreateCarWithClientMutation(
   () => {
@@ -319,11 +332,10 @@ function formatLicensePlate(event: Event) {
         <FieldGroup class="gap-2">
           <FieldLabel for="manufacturer">Marque</FieldLabel>
           <Field>
-            <Input
-              id="manufacturer"
+            <ManufacturerCombobox
               v-model="manufacturer"
-              v-bind="manufacturerAttrs"
-              type="text"
+              :options="manufacturerOptions"
+              :loading="isLoadingManufacturers"
             />
             <FieldError v-if="hasAttemptedSubmit && step2Errors.manufacturer">{{
               step2Errors.manufacturer
