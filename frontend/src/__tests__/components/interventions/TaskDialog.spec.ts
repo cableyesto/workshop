@@ -18,10 +18,7 @@ vi.mock('vee-validate', () => ({
       })
     }),
     errors: {},
-    defineField: vi.fn((name) => [
-      { value: '' },
-      { name, onBlur: vi.fn(), onChange: vi.fn() },
-    ]),
+    defineField: vi.fn((name) => [{ value: '' }, { name, onBlur: vi.fn(), onChange: vi.fn() }]),
     resetForm: vi.fn(),
     setValues: vi.fn(),
   })),
@@ -133,7 +130,7 @@ describe('TaskDialog', () => {
         global: { stubs },
       })
 
-      expect(screen.getByLabelText('Nom de l\'acte')).toBeInTheDocument()
+      expect(screen.getByLabelText("Nom de l'acte")).toBeInTheDocument()
       expect(screen.getByLabelText('Quantité')).toBeInTheDocument()
       expect(screen.getByLabelText(/Prix unitaire/)).toBeInTheDocument()
     })
@@ -164,7 +161,7 @@ describe('TaskDialog', () => {
       })
 
       expect(screen.getByText('Modifier un acte')).toBeInTheDocument()
-      expect(screen.getByText('Modifiez les informations de l\'acte.')).toBeInTheDocument()
+      expect(screen.getByText("Modifiez les informations de l'acte.")).toBeInTheDocument()
     })
 
     it('shows correct button labels', () => {
@@ -227,7 +224,7 @@ describe('TaskDialog', () => {
         global: { stubs },
       })
 
-      const nameInput = screen.getByLabelText('Nom de l\'acte')
+      const nameInput = screen.getByLabelText("Nom de l'acte")
       expect(nameInput).toHaveAttribute('type', 'text')
 
       const quantityInput = screen.getByLabelText('Quantité')
@@ -290,7 +287,7 @@ describe('TaskDialog', () => {
         global: { stubs },
       })
 
-      expect(screen.getByText('Modifiez les informations de l\'acte.')).toBeInTheDocument()
+      expect(screen.getByText("Modifiez les informations de l'acte.")).toBeInTheDocument()
     })
   })
 
@@ -328,7 +325,7 @@ describe('TaskDialog', () => {
         global: { stubs },
       })
 
-      const nameInput = screen.getByLabelText('Nom de l\'acte')
+      const nameInput = screen.getByLabelText("Nom de l'acte")
       expect(nameInput).toHaveAttribute('id', 'name')
 
       const quantityInput = screen.getByLabelText('Quantité')

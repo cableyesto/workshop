@@ -27,10 +27,7 @@ vi.mock('vee-validate', () => ({
       birthDate: '1990-01-01',
     },
     errors: {},
-    defineField: vi.fn((name) => [
-      { value: '' },
-      { name, onBlur: vi.fn(), onChange: vi.fn() },
-    ]),
+    defineField: vi.fn((name) => [{ value: '' }, { name, onBlur: vi.fn(), onChange: vi.fn() }]),
     resetForm: vi.fn(),
     setValues: vi.fn(),
   })),

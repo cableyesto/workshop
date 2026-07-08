@@ -70,16 +70,20 @@ const { mutate: updateIntervention } = useUpdateInterventionMutation(
 )
 
 // Watch for intervention data and populate form
-watch(interventionData, (data) => {
-  if (data && props.isEditMode) {
-    setValues({
-      hasClientRemark: data.clientRemark ? 'true' : 'false',
-      clientRequest: data.clientRequest || '',
-      hasInterventionEndRemark: data.interventionEndRemark ? 'true' : 'false',
-      finalNote: data.finalNote || '',
-    })
-  }
-}, { immediate: true })
+watch(
+  interventionData,
+  (data) => {
+    if (data && props.isEditMode) {
+      setValues({
+        hasClientRemark: data.clientRemark ? 'true' : 'false',
+        clientRequest: data.clientRequest || '',
+        hasInterventionEndRemark: data.interventionEndRemark ? 'true' : 'false',
+        finalNote: data.finalNote || '',
+      })
+    }
+  },
+  { immediate: true },
+)
 
 const onSubmit = handleSubmit(async (values) => {
   if (!props.interventionId) {
@@ -90,8 +94,14 @@ const onSubmit = handleSubmit(async (values) => {
   updateIntervention({
     interventionId: props.interventionId,
     data: {
-      clientRequest: values.hasClientRemark === 'true' && values.clientRequest ? values.clientRequest : undefined,
-      finalNote: values.hasInterventionEndRemark === 'true' && values.finalNote ? values.finalNote : undefined,
+      clientRequest:
+        values.hasClientRemark === 'true' && values.clientRequest
+          ? values.clientRequest
+          : undefined,
+      finalNote:
+        values.hasInterventionEndRemark === 'true' && values.finalNote
+          ? values.finalNote
+          : undefined,
     },
   })
 })

@@ -25,10 +25,7 @@ vi.mock('vee-validate', () => ({
         finalNote: '',
       })
     }),
-    defineField: vi.fn((name) => [
-      { value: '' },
-      { name, onBlur: vi.fn(), onChange: vi.fn() },
-    ]),
+    defineField: vi.fn((name) => [{ value: '' }, { name, onBlur: vi.fn(), onChange: vi.fn() }]),
     setValues: vi.fn(),
   })),
 }))
@@ -67,7 +64,8 @@ const stubs = {
     props: ['type', 'variant'],
   },
   Textarea: {
-    template: '<textarea :id="id" :disabled="disabled" :placeholder="placeholder" :rows="rows" class="resize-none"></textarea>',
+    template:
+      '<textarea :id="id" :disabled="disabled" :placeholder="placeholder" :rows="rows" class="resize-none"></textarea>',
     props: ['id', 'modelValue', 'disabled', 'placeholder', 'rows'],
   },
   Field: {
@@ -167,7 +165,7 @@ describe('InterventionStep3', () => {
         global: { stubs },
       })
 
-      expect(screen.getByText('Remarque fin d\'intervention')).toBeInTheDocument()
+      expect(screen.getByText("Remarque fin d'intervention")).toBeInTheDocument()
     })
 
     it('renders client request textarea', () => {
@@ -241,7 +239,6 @@ describe('InterventionStep3', () => {
 
       expect(emitted().back).toBeTruthy()
     })
-
   })
 
   describe('Form Fields', () => {
@@ -260,7 +257,6 @@ describe('InterventionStep3', () => {
       const finalNoteTextarea = screen.getByLabelText('Fin intervention')
       expect(finalNoteTextarea).toHaveAttribute('rows', '6')
     })
-
   })
 
   describe('Edit Mode', () => {

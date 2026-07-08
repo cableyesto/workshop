@@ -33,10 +33,7 @@ vi.mock('vee-validate', () => ({
       })
     }),
     errors: {},
-    defineField: vi.fn((name) => [
-      { value: '' },
-      { name, onBlur: vi.fn(), onChange: vi.fn() },
-    ]),
+    defineField: vi.fn((name) => [{ value: '' }, { name, onBlur: vi.fn(), onChange: vi.fn() }]),
     setValues: vi.fn(),
   })),
 }))
@@ -48,7 +45,13 @@ vi.mock('@vee-validate/zod', () => ({
 // Mock data
 const mockMechanics = [
   { id: 1, firstName: 'Jean', lastName: 'Dupont', birthDate: '1980-01-01', hireDate: '2020-01-01' },
-  { id: 2, firstName: 'Marie', lastName: 'Martin', birthDate: '1985-05-15', hireDate: '2019-03-10' },
+  {
+    id: 2,
+    firstName: 'Marie',
+    lastName: 'Martin',
+    birthDate: '1985-05-15',
+    hireDate: '2019-03-10',
+  },
 ]
 
 const mockIntervention = {
@@ -80,7 +83,8 @@ const stubs = {
     props: ['type', 'variant'],
   },
   Input: {
-    template: '<input :id="id" :type="type" :placeholder="placeholder" @input="$emit(\'input\', $event)" />',
+    template:
+      '<input :id="id" :type="type" :placeholder="placeholder" @input="$emit(\'input\', $event)" />',
     props: ['id', 'type', 'modelValue', 'placeholder', 'maxlength'],
   },
   Field: {
@@ -104,7 +108,8 @@ const stubs = {
     props: ['value', 'id'],
   },
   MechanicCombobox: {
-    template: '<div data-testid="mechanic-combobox"><input id="mechanic" aria-label="Mécanicien" /></div>',
+    template:
+      '<div data-testid="mechanic-combobox"><input id="mechanic" aria-label="Mécanicien" /></div>',
     props: ['modelValue', 'options', 'loading'],
   },
   Breadcrumb: {
@@ -172,7 +177,7 @@ describe('InterventionStep2', () => {
         global: { stubs },
       })
 
-      expect(screen.getByText('Étape 2: Type d\'intervention')).toBeInTheDocument()
+      expect(screen.getByText("Étape 2: Type d'intervention")).toBeInTheDocument()
     })
 
     it('renders intervention type radio group', () => {
@@ -186,7 +191,7 @@ describe('InterventionStep2', () => {
         global: { stubs },
       })
 
-      expect(screen.getByText('Type d\'intervention')).toBeInTheDocument()
+      expect(screen.getByText("Type d'intervention")).toBeInTheDocument()
       expect(screen.getByText('Réparation')).toBeInTheDocument()
       expect(screen.getByText('Diagnostic')).toBeInTheDocument()
     })
@@ -281,10 +286,10 @@ describe('InterventionStep2', () => {
 
     it('shows all status labels correctly', () => {
       const statusLabels = {
-        'Assigned': '🏷️ Affectée',
+        Assigned: '🏷️ Affectée',
         'In Progress': '⏳ En cours',
-        'Paused': '⏸️ En pause',
-        'Stopped': '✅ Terminée',
+        Paused: '⏸️ En pause',
+        Stopped: '✅ Terminée',
       }
 
       // Just verify the labels exist in the component logic
@@ -402,7 +407,7 @@ describe('InterventionStep2', () => {
       })
 
       // Component should still render
-      expect(screen.getByText('Étape 2: Type d\'intervention')).toBeInTheDocument()
+      expect(screen.getByText("Étape 2: Type d'intervention")).toBeInTheDocument()
     })
   })
 })

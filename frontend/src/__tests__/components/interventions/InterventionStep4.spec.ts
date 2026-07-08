@@ -205,7 +205,6 @@ describe('InterventionStep4', () => {
       expect(screen.getByText('Vidange moteur')).toBeInTheDocument()
       expect(screen.getByText('Changement plaquettes')).toBeInTheDocument()
     })
-
   })
 
   describe('Navigation Buttons', () => {
@@ -237,7 +236,6 @@ describe('InterventionStep4', () => {
 
       expect(emitted().back).toBeTruthy()
     })
-
 
     it('emits next event when validate button clicked', async () => {
       const user = userEvent.setup()

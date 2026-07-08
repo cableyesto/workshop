@@ -76,7 +76,7 @@ describe('manufacturers.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         '/api/manufacturers',
         {},
-        'Failed to fetch manufacturers'
+        'Failed to fetch manufacturers',
       )
     })
 
@@ -86,11 +86,7 @@ describe('manufacturers.ts', () => {
       const result = useManufacturersQuery() as any
       await result.config.query()
 
-      expect(helpers.apiRequest).toHaveBeenCalledWith(
-        expect.any(String),
-        {},
-        expect.any(String)
-      )
+      expect(helpers.apiRequest).toHaveBeenCalledWith(expect.any(String), {}, expect.any(String))
     })
 
     it('query function passes custom error message', async () => {
@@ -102,7 +98,7 @@ describe('manufacturers.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(Object),
-        'Failed to fetch manufacturers'
+        'Failed to fetch manufacturers',
       )
     })
 

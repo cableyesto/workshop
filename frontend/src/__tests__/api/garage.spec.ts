@@ -102,7 +102,7 @@ describe('garage.ts', () => {
             Authorization: 'Bearer test-token',
             'Content-Type': 'application/json',
           }),
-        })
+        }),
       )
     })
 
@@ -124,7 +124,7 @@ describe('garage.ts', () => {
           headers: expect.objectContaining({
             Authorization: 'Bearer my-secret-token',
           }),
-        })
+        }),
       )
     })
 

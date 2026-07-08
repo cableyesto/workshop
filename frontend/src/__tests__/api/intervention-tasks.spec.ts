@@ -127,7 +127,7 @@ describe('intervention-tasks.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         '/api/interventions/123/tasks',
         {},
-        'Failed to fetch intervention tasks'
+        'Failed to fetch intervention tasks',
       )
     })
 
@@ -163,11 +163,7 @@ describe('intervention-tasks.ts', () => {
 
       await getInterventionTasksAPI(1)
 
-      expect(helpers.apiRequest).toHaveBeenCalledWith(
-        expect.any(String),
-        {},
-        expect.any(String)
-      )
+      expect(helpers.apiRequest).toHaveBeenCalledWith(expect.any(String), {}, expect.any(String))
     })
   })
 
@@ -182,7 +178,7 @@ describe('intervention-tasks.ts', () => {
         expect.objectContaining({
           method: 'POST',
         }),
-        'Failed to create task'
+        'Failed to create task',
       )
     })
 
@@ -196,7 +192,7 @@ describe('intervention-tasks.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(mockTaskPayload),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -212,7 +208,7 @@ describe('intervention-tasks.ts', () => {
             'Content-Type': 'application/json',
           },
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -244,7 +240,7 @@ describe('intervention-tasks.ts', () => {
         expect.objectContaining({
           method: 'PATCH',
         }),
-        'Failed to update task'
+        'Failed to update task',
       )
     })
 
@@ -258,7 +254,7 @@ describe('intervention-tasks.ts', () => {
         expect.objectContaining({
           method: 'PATCH',
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -278,7 +274,7 @@ describe('intervention-tasks.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(updatedPayload),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -296,7 +292,7 @@ describe('intervention-tasks.ts', () => {
       vi.mocked(helpers.apiRequest).mockRejectedValue(new Error('Update failed'))
 
       await expect(updateInterventionTaskAPI(1, 1, mockTaskPayload)).rejects.toThrow(
-        'Update failed'
+        'Update failed',
       )
     })
   })

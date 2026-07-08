@@ -20,10 +20,7 @@ vi.mock('vee-validate', () => ({
       onSuccess()
     }),
     errors: {},
-    defineField: vi.fn((name) => [
-      { value: '' },
-      { name, onBlur: vi.fn(), onChange: vi.fn() },
-    ]),
+    defineField: vi.fn((name) => [{ value: '' }, { name, onBlur: vi.fn(), onChange: vi.fn() }]),
   })),
 }))
 
@@ -34,8 +31,20 @@ vi.mock('@vee-validate/zod', () => ({
 // Mock data
 const mockMechanics = [
   { id: 1, firstName: 'Jean', lastName: 'Dupont', birthDate: '1980-01-01', hireDate: '2020-01-01' },
-  { id: 2, firstName: 'Marie', lastName: 'Martin', birthDate: '1985-05-15', hireDate: '2019-03-10' },
-  { id: 3, firstName: 'Pierre', lastName: 'Durand', birthDate: '1990-08-20', hireDate: '2021-06-15' },
+  {
+    id: 2,
+    firstName: 'Marie',
+    lastName: 'Martin',
+    birthDate: '1985-05-15',
+    hireDate: '2019-03-10',
+  },
+  {
+    id: 3,
+    firstName: 'Pierre',
+    lastName: 'Durand',
+    birthDate: '1990-08-20',
+    hireDate: '2021-06-15',
+  },
 ]
 
 // Stubs for UI components
@@ -45,7 +54,8 @@ const stubs = {
     props: ['type'],
   },
   Input: {
-    template: '<input :id="id" :type="type" :placeholder="placeholder" :maxlength="maxlength" @input="$emit(\'input\', $event)" />',
+    template:
+      '<input :id="id" :type="type" :placeholder="placeholder" :maxlength="maxlength" @input="$emit(\'input\', $event)" />',
     props: ['id', 'type', 'modelValue', 'placeholder', 'maxlength'],
   },
   Field: {
@@ -61,7 +71,8 @@ const stubs = {
     template: '<span class="error"><slot /></span>',
   },
   MechanicCombobox: {
-    template: '<div data-testid="mechanic-combobox" :data-loading="loading"><input id="mechanic" aria-label="Mécanicien" /><slot /></div>',
+    template:
+      '<div data-testid="mechanic-combobox" :data-loading="loading"><input id="mechanic" aria-label="Mécanicien" /><slot /></div>',
     props: ['modelValue', 'options', 'loading'],
   },
 }
@@ -232,9 +243,7 @@ describe('InterventionStep1', () => {
       expect(updateEvents).toBeTruthy()
 
       // Check that at least one emitted value is formatted
-      const formattedValues = updateEvents?.filter((event: any) =>
-        event[0] === 'AB-123-CD'
-      )
+      const formattedValues = updateEvents?.filter((event: any) => event[0] === 'AB-123-CD')
       expect(formattedValues?.length).toBeGreaterThan(0)
     })
 
@@ -257,9 +266,7 @@ describe('InterventionStep1', () => {
       expect(updateEvents).toBeTruthy()
 
       // Should have partial formatted values
-      const partialFormatted = updateEvents?.filter((event: any) =>
-        event[0].includes('-')
-      )
+      const partialFormatted = updateEvents?.filter((event: any) => event[0].includes('-'))
       expect(partialFormatted).toBeTruthy()
     })
 
@@ -281,9 +288,7 @@ describe('InterventionStep1', () => {
       expect(updateEvents).toBeTruthy()
 
       // All emitted values should be uppercase
-      const hasUppercase = updateEvents?.some((event: any) =>
-        event[0] === 'AB' || event[0] === 'A'
-      )
+      const hasUppercase = updateEvents?.some((event: any) => event[0] === 'AB' || event[0] === 'A')
       expect(hasUppercase).toBe(true)
     })
   })

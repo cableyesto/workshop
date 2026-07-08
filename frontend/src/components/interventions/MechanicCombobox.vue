@@ -79,10 +79,7 @@ function selectMechanic(id: number) {
             >
               <Check
                 :class="
-                  cn(
-                    'mr-2 h-4 w-4',
-                    modelValue === option.value ? 'opacity-100' : 'opacity-0',
-                  )
+                  cn('mr-2 h-4 w-4', modelValue === option.value ? 'opacity-100' : 'opacity-0')
                 "
               />
               {{ option.label }}

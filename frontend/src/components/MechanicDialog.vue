@@ -26,13 +26,15 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   close: []
-  submit: [data: {
-    lastName: string
-    firstName: string
-    birthDate: string
-    hireDate?: string
-    pin?: string
-  }]
+  submit: [
+    data: {
+      lastName: string
+      firstName: string
+      birthDate: string
+      hireDate?: string
+      pin?: string
+    },
+  ]
   delete: []
 }>()
 
@@ -116,14 +118,7 @@ const getInitialValues = () => {
   }
 }
 
-const {
-  handleSubmit,
-  values,
-  errors,
-  defineField,
-  resetForm,
-  setValues,
-} = useForm({
+const { handleSubmit, values, errors, defineField, resetForm, setValues } = useForm({
   validationSchema: schema,
   initialValues: getInitialValues(),
   validateOnMount: false,
@@ -143,7 +138,7 @@ const dialogTitle = computed(() => {
 
 const dialogDescription = computed(() => {
   if (props.mode === 'edit') {
-    return "Modifiez les informations du mécanicien."
+    return 'Modifiez les informations du mécanicien.'
   }
   return 'Remplissez les informations du nouveau mécanicien.'
 })
@@ -238,9 +233,7 @@ const onSubmit = handleSubmit(
               inputmode="numeric"
               placeholder="0000"
             />
-            <FieldError v-if="hasAttemptedSubmit && errors.pin">{{
-              errors.pin
-            }}</FieldError>
+            <FieldError v-if="hasAttemptedSubmit && errors.pin">{{ errors.pin }}</FieldError>
           </Field>
         </FieldGroup>
 

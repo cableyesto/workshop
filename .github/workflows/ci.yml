@@ -85,13 +85,9 @@ jobs:
           cache: true
           working-directory: ./frontend
 
-     # - name: Run checks (format + lint + type-check)
-     #   working-directory: ./frontend
-     #   run: vp check
-
-     # - name: Run lint
-     #   working-directory: ./frontend
-     #   run: vp lint
+      - name: Run checks (format + lint + type-check)
+        working-directory: ./frontend
+        run: vp check
 
       - name: Run tests with coverage (Vitest)
         working-directory: ./frontend

@@ -27,14 +27,16 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   close: []
-  submit: [data: {
-    lastName: string
-    firstName: string
-    birthDate: string
-    hireDate?: string
-    email: string
-    password?: string
-  }]
+  submit: [
+    data: {
+      lastName: string
+      firstName: string
+      birthDate: string
+      hireDate?: string
+      email: string
+      password?: string
+    },
+  ]
   delete: []
 }>()
 
@@ -71,10 +73,7 @@ watch(
 // Step 1 validation schema
 const step1Schema = toTypedSchema(
   z.object({
-    lastName: z
-      .string()
-      .min(1, 'Nom requis')
-      .max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+    lastName: z.string().min(1, 'Nom requis').max(50, 'Le nom ne peut pas dépasser 50 caractères'),
     firstName: z
       .string()
       .min(1, 'Prénom requis')
@@ -229,14 +228,12 @@ const dialogTitle = computed(() => {
   if (props.mode === 'edit') {
     return `${action} un réceptionniste`
   }
-  return step.value === 1
-    ? 'Ajouter un réceptionniste (1/2)'
-    : 'Ajouter un réceptionniste (2/2)'
+  return step.value === 1 ? 'Ajouter un réceptionniste (1/2)' : 'Ajouter un réceptionniste (2/2)'
 })
 
 const dialogDescription = computed(() => {
   if (props.mode === 'edit') {
-    return "Modifiez les informations du réceptionniste."
+    return 'Modifiez les informations du réceptionniste.'
   }
   return step.value === 1
     ? 'Remplissez les informations personnelles.'

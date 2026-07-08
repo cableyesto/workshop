@@ -26,7 +26,8 @@ const stubs = {
     template: '<td><slot /></td>',
   },
   Checkbox: {
-    template: '<input type="checkbox" :checked="modelValue" :disabled="disabled" @change="$emit(\'update:modelValue\', !modelValue)" />',
+    template:
+      '<input type="checkbox" :checked="modelValue" :disabled="disabled" @change="$emit(\'update:modelValue\', !modelValue)" />',
     props: ['modelValue', 'disabled'],
   },
 }

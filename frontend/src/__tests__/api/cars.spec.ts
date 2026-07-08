@@ -161,7 +161,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           method: 'PATCH',
         }),
-        'Failed to update client called back status'
+        'Failed to update client called back status',
       )
     })
 
@@ -175,7 +175,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: JSON.stringify({ isClientCalledBack: true }),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -189,7 +189,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: JSON.stringify({ isClientCalledBack: false }),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -219,7 +219,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           method: 'PATCH',
         }),
-        'Failed to remove car from storage'
+        'Failed to remove car from storage',
       )
     })
 
@@ -233,7 +233,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: JSON.stringify({ isStored: false }),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -263,7 +263,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           method: 'PATCH',
         }),
-        'Failed to update car storage'
+        'Failed to update car storage',
       )
     })
 
@@ -277,7 +277,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: JSON.stringify({ licensePlate: 'XY-789-ZW', isStored: true }),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -291,7 +291,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: expect.stringContaining('"isStored":false'),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -307,7 +307,7 @@ describe('cars.ts', () => {
       vi.mocked(helpers.apiRequest).mockRejectedValue(new Error('Update failed'))
 
       await expect(updateCarStorageByLicensePlateAPI('AB-123-CD', true)).rejects.toThrow(
-        'Update failed'
+        'Update failed',
       )
     })
   })
@@ -323,7 +323,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           method: 'PUT',
         }),
-        'Failed to update car'
+        'Failed to update car',
       )
     })
 
@@ -337,7 +337,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(mockCarData),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -358,7 +358,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: expect.stringContaining('null'),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -388,7 +388,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           method: 'POST',
         }),
-        'Failed to create car'
+        'Failed to create car',
       )
     })
 
@@ -402,7 +402,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(mockClientCarData),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -424,7 +424,7 @@ describe('cars.ts', () => {
         expect.objectContaining({
           body: expect.stringContaining('"email":null'),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 

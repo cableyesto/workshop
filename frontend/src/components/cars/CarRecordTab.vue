@@ -60,9 +60,7 @@ function handleAddToStorage(licensePlate: string) {
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex justify-start">
-      <Button @click="handleCreateCar" variant="outline">
-        Créer une fiche voiture
-      </Button>
+      <Button @click="handleCreateCar" variant="outline"> Créer une fiche voiture </Button>
     </div>
 
     <div v-if="isLoading">Chargement...</div>

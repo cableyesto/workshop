@@ -245,11 +245,14 @@ describe('CarInterventionTable.vue', () => {
     })
 
     it('handles many cars', () => {
-      const manyCars = Array.from({ length: 10 }, (_, i): CarWithIntervention => ({
-        ...mockCars[0]!,
-        id: i + 1,
-        licensePlate: `AB-${100 + i}-CD`,
-      }))
+      const manyCars = Array.from(
+        { length: 10 },
+        (_, i): CarWithIntervention => ({
+          ...mockCars[0]!,
+          id: i + 1,
+          licensePlate: `AB-${100 + i}-CD`,
+        }),
+      )
 
       const { container } = render(CarInterventionTable, {
         props: {

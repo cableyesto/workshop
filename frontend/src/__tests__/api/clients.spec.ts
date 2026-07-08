@@ -44,7 +44,7 @@ describe('clients.ts', () => {
           method: 'PUT',
           body: JSON.stringify(clientData),
         },
-        'Failed to update client'
+        'Failed to update client',
       )
 
       expect(helpers.apiRequest).toHaveBeenCalledWith(
@@ -53,7 +53,7 @@ describe('clients.ts', () => {
           method: 'PUT',
           body: JSON.stringify(clientData),
         },
-        'Failed to update client'
+        'Failed to update client',
       )
     })
 
@@ -73,7 +73,7 @@ describe('clients.ts', () => {
           method: 'PUT',
           body: JSON.stringify(clientData),
         },
-        'Failed to update client'
+        'Failed to update client',
       )
 
       expect(helpers.apiRequest).toHaveBeenCalledWith(
@@ -82,7 +82,7 @@ describe('clients.ts', () => {
           method: 'PUT',
           body: expect.stringContaining('"email":null'),
         }),
-        'Failed to update client'
+        'Failed to update client',
       )
     })
 
@@ -102,7 +102,7 @@ describe('clients.ts', () => {
           method: 'PUT',
           body: JSON.stringify(clientData),
         },
-        'Failed to update client'
+        'Failed to update client',
       )
 
       expect(helpers.apiRequest).toHaveBeenCalledWith(
@@ -110,7 +110,7 @@ describe('clients.ts', () => {
         expect.objectContaining({
           method: 'PUT',
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -130,13 +130,13 @@ describe('clients.ts', () => {
           method: 'PUT',
           body: JSON.stringify(clientData),
         },
-        'Failed to update client'
+        'Failed to update client',
       )
 
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(Object),
-        'Failed to update client'
+        'Failed to update client',
       )
     })
 
@@ -156,7 +156,7 @@ describe('clients.ts', () => {
           method: 'PUT',
           body: JSON.stringify(clientData),
         },
-        'Failed to update client'
+        'Failed to update client',
       )
 
       expect(result).toBeUndefined()

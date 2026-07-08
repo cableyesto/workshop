@@ -136,19 +136,23 @@ const { mutate: updateIntervention } = useUpdateInterventionMutation(
 )
 
 // Watch for intervention data and populate form
-watch(interventionData, (data) => {
-  if (data && props.isEditMode) {
-    setValues({
-      interventionType: data.interventionType || 'Repair',
-      documentType: data.documentType || 'Estimate',
-      mechanicId: data.mechanic.id,
-      licensePlate: data.car.licensePlate,
-      date: data.date,
-      startTime: data.startTime,
-    })
-    currentStatus.value = data.status
-  }
-}, { immediate: true })
+watch(
+  interventionData,
+  (data) => {
+    if (data && props.isEditMode) {
+      setValues({
+        interventionType: data.interventionType || 'Repair',
+        documentType: data.documentType || 'Estimate',
+        mechanicId: data.mechanic.id,
+        licensePlate: data.car.licensePlate,
+        date: data.date,
+        startTime: data.startTime,
+      })
+      currentStatus.value = data.status
+    }
+  },
+  { immediate: true },
+)
 
 function formatLicensePlate(event: Event) {
   hasAttemptedSubmit.value = false

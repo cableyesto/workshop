@@ -36,11 +36,7 @@ function handleCloseClientInfo() {
     </div>
 
     <div v-if="isLoading">Chargement...</div>
-    <CarStorageTable
-      v-else-if="storedCars"
-      :cars="storedCars"
-      @view-client="handleViewClient"
-    />
+    <CarStorageTable v-else-if="storedCars" :cars="storedCars" @view-client="handleViewClient" />
 
     <CarStorageDialog :open="isStorageDialogOpen" @close="isStorageDialogOpen = false" />
 

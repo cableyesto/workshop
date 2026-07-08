@@ -21,10 +21,7 @@ vi.mock('vee-validate', () => ({
     }),
     values: {},
     errors: {},
-    defineField: vi.fn((name) => [
-      { value: '' },
-      { name, onBlur: vi.fn(), onChange: vi.fn() },
-    ]),
+    defineField: vi.fn((name) => [{ value: '' }, { name, onBlur: vi.fn(), onChange: vi.fn() }]),
     resetForm: vi.fn(),
     setValues: vi.fn(),
   })),
@@ -69,7 +66,8 @@ const stubs = {
     props: ['type', 'variant'],
   },
   Input: {
-    template: '<input :id="id" :type="type" :maxlength="maxlength" :placeholder="placeholder" data-testid="input" />',
+    template:
+      '<input :id="id" :type="type" :maxlength="maxlength" :placeholder="placeholder" data-testid="input" />',
     props: ['id', 'type', 'modelValue', 'maxlength', 'inputmode', 'placeholder'],
   },
   Field: {

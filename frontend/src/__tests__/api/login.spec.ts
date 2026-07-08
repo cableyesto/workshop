@@ -34,7 +34,7 @@ describe('login.ts', () => {
           '/api/login',
           expect.objectContaining({
             method: 'POST',
-          })
+          }),
         )
       })
 
@@ -50,7 +50,7 @@ describe('login.ts', () => {
           expect.any(String),
           expect.objectContaining({
             body: JSON.stringify(validOwnerCredentials),
-          })
+          }),
         )
       })
 
@@ -68,7 +68,7 @@ describe('login.ts', () => {
             headers: {
               'Content-Type': 'application/json',
             },
-          })
+          }),
         )
       })
 
@@ -215,7 +215,7 @@ describe('login.ts', () => {
           '/api/login',
           expect.objectContaining({
             method: 'POST',
-          })
+          }),
         )
       })
 
@@ -231,7 +231,7 @@ describe('login.ts', () => {
           expect.any(String),
           expect.objectContaining({
             body: JSON.stringify(validReceptionistCredentials),
-          })
+          }),
         )
       })
 
@@ -258,7 +258,7 @@ describe('login.ts', () => {
         })
 
         await expect(loginReceptionist(validReceptionistCredentials)).rejects.toThrow(
-          'Invalid credentials'
+          'Invalid credentials',
         )
       })
 
@@ -272,7 +272,7 @@ describe('login.ts', () => {
         })
 
         await expect(loginReceptionist(validReceptionistCredentials)).rejects.toThrow(
-          'Login failed'
+          'Login failed',
         )
       })
     })
@@ -328,16 +328,8 @@ describe('login.ts', () => {
         password: 'pass',
       })
 
-      expect(global.fetch).toHaveBeenNthCalledWith(
-        1,
-        '/api/login',
-        expect.any(Object)
-      )
-      expect(global.fetch).toHaveBeenNthCalledWith(
-        2,
-        '/api/login',
-        expect.any(Object)
-      )
+      expect(global.fetch).toHaveBeenNthCalledWith(1, '/api/login', expect.any(Object))
+      expect(global.fetch).toHaveBeenNthCalledWith(2, '/api/login', expect.any(Object))
     })
 
     it('both functions use POST method', async () => {

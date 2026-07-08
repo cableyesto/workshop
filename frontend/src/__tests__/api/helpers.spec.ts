@@ -42,7 +42,7 @@ describe('apiRequest', () => {
             Authorization: 'Bearer test-token-123',
             'Content-Type': 'application/json',
           }),
-        })
+        }),
       )
       expect(result).toEqual(mockData)
     })
@@ -69,7 +69,7 @@ describe('apiRequest', () => {
             'Content-Type': 'application/json',
             'X-Custom-Header': 'custom-value',
           }),
-        })
+        }),
       )
     })
 
@@ -93,7 +93,7 @@ describe('apiRequest', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(postData),
-        })
+        }),
       )
       expect(result).toEqual(mockData)
     })
@@ -121,9 +121,7 @@ describe('apiRequest', () => {
         json: async () => ({ error: errorMessage }),
       })
 
-      await expect(
-        apiRequest('https://api.test.com/nonexistent')
-      ).rejects.toThrow(errorMessage)
+      await expect(apiRequest('https://api.test.com/nonexistent')).rejects.toThrow(errorMessage)
     })
 
     it('uses default error message when response has no error field', async () => {
@@ -134,7 +132,7 @@ describe('apiRequest', () => {
       })
 
       await expect(
-        apiRequest('https://api.test.com/error', {}, 'Custom error message')
+        apiRequest('https://api.test.com/error', {}, 'Custom error message'),
       ).rejects.toThrow('Custom error message')
     })
 
@@ -148,9 +146,9 @@ describe('apiRequest', () => {
         },
       })
 
-      await expect(
-        apiRequest('https://api.test.com/error', {}, customError)
-      ).rejects.toThrow(customError)
+      await expect(apiRequest('https://api.test.com/error', {}, customError)).rejects.toThrow(
+        customError,
+      )
     })
 
     it('throws error with response error message', async () => {
@@ -160,9 +158,7 @@ describe('apiRequest', () => {
         json: async () => ({ error: 'Validation failed' }),
       })
 
-      await expect(
-        apiRequest('https://api.test.com/validate')
-      ).rejects.toThrow('Validation failed')
+      await expect(apiRequest('https://api.test.com/validate')).rejects.toThrow('Validation failed')
     })
   })
 
@@ -184,7 +180,7 @@ describe('apiRequest', () => {
           headers: expect.objectContaining({
             Authorization: 'Bearer my-secret-token',
           }),
-        })
+        }),
       )
     })
 
@@ -205,7 +201,7 @@ describe('apiRequest', () => {
           headers: expect.objectContaining({
             Authorization: 'Bearer null',
           }),
-        })
+        }),
       )
     })
   })
@@ -226,13 +222,7 @@ describe('createMutationHook', () => {
 
     // Just verify the function can be called without throwing
     expect(() => {
-      createMutationHook(
-        'test-mutation',
-        mutationFn,
-        'test-cache',
-        dialogOpen,
-        'Test error'
-      )
+      createMutationHook('test-mutation', mutationFn, 'test-cache', dialogOpen, 'Test error')
     }).not.toThrow()
   })
 
@@ -247,7 +237,7 @@ describe('createMutationHook', () => {
         mutationFn,
         'items-cache',
         dialogOpen,
-        'Error creating item'
+        'Error creating item',
       )
     }).not.toThrow()
   })

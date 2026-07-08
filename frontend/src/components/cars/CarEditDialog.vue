@@ -50,7 +50,8 @@ watch(
         })
         setStep2Values({
           registrationYear: props.car.registrationYear !== null ? props.car.registrationYear : '',
-          registrationMonth: props.car.registrationMonth !== null ? props.car.registrationMonth : '',
+          registrationMonth:
+            props.car.registrationMonth !== null ? props.car.registrationMonth : '',
           mileage: props.car.mileage !== null ? props.car.mileage : '',
         })
       } else {
@@ -105,8 +106,10 @@ const getStep1InitialValues = () => {
 const getStep2InitialValues = () => {
   if (props.car) {
     return {
-      registrationYear: props.car.registrationYear !== null ? props.car.registrationYear : ('' as const),
-      registrationMonth: props.car.registrationMonth !== null ? props.car.registrationMonth : ('' as const),
+      registrationYear:
+        props.car.registrationYear !== null ? props.car.registrationYear : ('' as const),
+      registrationMonth:
+        props.car.registrationMonth !== null ? props.car.registrationMonth : ('' as const),
       mileage: props.car.mileage !== null ? props.car.mileage : ('' as const),
     }
   }

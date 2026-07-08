@@ -57,7 +57,9 @@ const emit = defineEmits<{
             <Checkbox
               :model-value="car.client.isClientCalledBack"
               :disabled="updatingClientIds.has(car.client.id) || car.client.isClientCalledBack"
-              @update:model-value="() => emit('toggleCalledBack', car.client.id, car.client.isClientCalledBack)"
+              @update:model-value="
+                () => emit('toggleCalledBack', car.client.id, car.client.isClientCalledBack)
+              "
             />
           </TableCell>
           <TableCell>

@@ -231,7 +231,7 @@ describe('InterventionSearchResult', () => {
       })
 
       expect(screen.getByText('Annuler')).toBeInTheDocument()
-      expect(screen.getByText('Modifier l\'intervention')).toBeInTheDocument()
+      expect(screen.getByText("Modifier l'intervention")).toBeInTheDocument()
     })
 
     it('emits edit with intervention ID when edit clicked', async () => {
@@ -244,7 +244,7 @@ describe('InterventionSearchResult', () => {
         global: { stubs },
       })
 
-      const editButton = screen.getByText('Modifier l\'intervention')
+      const editButton = screen.getByText("Modifier l'intervention")
       await user.click(editButton)
 
       expect(emitted().edit).toBeTruthy()

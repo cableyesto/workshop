@@ -158,7 +158,7 @@ describe('interventions.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         '/api/interventions/search?mechanicId=123&licensePlate=AB-123-CD',
         {},
-        'Failed to search intervention'
+        'Failed to search intervention',
       )
     })
 
@@ -170,7 +170,7 @@ describe('interventions.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         expect.stringContaining('licensePlate=XY-999-AB'),
         expect.any(Object),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -202,7 +202,7 @@ describe('interventions.ts', () => {
         expect.objectContaining({
           method: 'POST',
         }),
-        'Failed to create intervention'
+        'Failed to create intervention',
       )
     })
 
@@ -219,7 +219,7 @@ describe('interventions.ts', () => {
             licensePlate: 'XY-789-ZW',
           }),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -235,7 +235,7 @@ describe('interventions.ts', () => {
             'Content-Type': 'application/json',
           },
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -265,7 +265,7 @@ describe('interventions.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         '/api/interventions/123',
         {},
-        'Failed to fetch intervention'
+        'Failed to fetch intervention',
       )
     })
 
@@ -299,7 +299,7 @@ describe('interventions.ts', () => {
         expect.objectContaining({
           method: 'PATCH',
         }),
-        'Failed to update intervention'
+        'Failed to update intervention',
       )
     })
 
@@ -313,7 +313,7 @@ describe('interventions.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(mockUpdatePayload),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -345,7 +345,7 @@ describe('interventions.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(partialPayload),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
   })
@@ -404,7 +404,7 @@ describe('interventions.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         '/api/interventions/456',
         expect.any(Object),
-        expect.any(String)
+        expect.any(String),
       )
     })
   })

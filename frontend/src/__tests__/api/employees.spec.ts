@@ -164,7 +164,7 @@ describe('employees.ts', () => {
         expect.objectContaining({
           method: 'POST',
         }),
-        'Failed to create mechanic'
+        'Failed to create mechanic',
       )
     })
 
@@ -178,7 +178,7 @@ describe('employees.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(mockEmployeeFormData),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -210,7 +210,7 @@ describe('employees.ts', () => {
         expect.objectContaining({
           method: 'PUT',
         }),
-        'Failed to update mechanic'
+        'Failed to update mechanic',
       )
     })
 
@@ -229,7 +229,7 @@ describe('employees.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(partialData),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -259,7 +259,7 @@ describe('employees.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         '/api/mechanics/123',
         { method: 'DELETE' },
-        'Failed to delete mechanic'
+        'Failed to delete mechanic',
       )
     })
 
@@ -296,7 +296,7 @@ describe('employees.ts', () => {
         expect.objectContaining({
           method: 'POST',
         }),
-        'Failed to create receptionist'
+        'Failed to create receptionist',
       )
     })
 
@@ -316,7 +316,7 @@ describe('employees.ts', () => {
         expect.objectContaining({
           body: JSON.stringify(receptionistData),
         }),
-        expect.any(String)
+        expect.any(String),
       )
     })
 
@@ -337,7 +337,7 @@ describe('employees.ts', () => {
       vi.mocked(helpers.apiRequest).mockRejectedValue(new Error('Create failed'))
 
       await expect(
-        createReceptionistAPI({ ...mockEmployeeFormData, type: 'receptionist' })
+        createReceptionistAPI({ ...mockEmployeeFormData, type: 'receptionist' }),
       ).rejects.toThrow('Create failed')
     })
   })
@@ -353,7 +353,7 @@ describe('employees.ts', () => {
         expect.objectContaining({
           method: 'PUT',
         }),
-        'Failed to update receptionist'
+        'Failed to update receptionist',
       )
     })
 
@@ -383,7 +383,7 @@ describe('employees.ts', () => {
       expect(helpers.apiRequest).toHaveBeenCalledWith(
         '/api/receptionists/123',
         { method: 'DELETE' },
-        'Failed to delete receptionist'
+        'Failed to delete receptionist',
       )
     })
 
@@ -421,7 +421,7 @@ describe('employees.ts', () => {
         createMechanicAPI,
         'mechanics',
         dialogOpen,
-        'Error creating mechanic'
+        'Error creating mechanic',
       )
     })
 
@@ -435,7 +435,7 @@ describe('employees.ts', () => {
         expect.any(Function),
         'mechanics',
         dialogOpen,
-        'Error updating mechanic'
+        'Error updating mechanic',
       )
     })
 
@@ -449,7 +449,7 @@ describe('employees.ts', () => {
         deleteMechanicAPI,
         'mechanics',
         dialogOpen,
-        'Error deleting mechanic'
+        'Error deleting mechanic',
       )
     })
   })
@@ -473,7 +473,7 @@ describe('employees.ts', () => {
         createReceptionistAPI,
         'receptionists',
         dialogOpen,
-        'Error creating receptionist'
+        'Error creating receptionist',
       )
     })
 
@@ -487,7 +487,7 @@ describe('employees.ts', () => {
         expect.any(Function),
         'receptionists',
         dialogOpen,
-        'Error updating receptionist'
+        'Error updating receptionist',
       )
     })
 
@@ -501,7 +501,7 @@ describe('employees.ts', () => {
         deleteReceptionistAPI,
         'receptionists',
         dialogOpen,
-        'Error deleting receptionist'
+        'Error deleting receptionist',
       )
     })
   })
