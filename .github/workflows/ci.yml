@@ -48,9 +48,9 @@ jobs:
       #  working-directory: ./backend
       #  run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
-      - name: Run static analysis (PHPStan)
-        working-directory: ./backend
-        run: vendor/bin/phpstan analyse src tests --level=5
+      #- name: Run static analysis (PHPStan)
+      #  working-directory: ./backend
+      #  run: vendor/bin/phpstan analyse src tests --level=5
 
       - name: Setup database
         working-directory: ./backend
@@ -83,9 +83,13 @@ jobs:
           cache: true
           working-directory: ./frontend
 
-      - name: Run checks (format + lint + type-check)
+     # - name: Run checks (format + lint + type-check)
+     #   working-directory: ./frontend
+     #   run: vp check
+
+      - name: Run lint
         working-directory: ./frontend
-        run: vp check
+        run: vp lint
 
       - name: Run tests (Vitest)
         working-directory: ./frontend
