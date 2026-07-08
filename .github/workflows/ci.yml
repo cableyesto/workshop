@@ -93,9 +93,9 @@ jobs:
      #   working-directory: ./frontend
      #   run: vp lint
 
-      - name: Run tests (Vitest)
+      - name: Run tests with coverage (Vitest)
         working-directory: ./frontend
-        run: vp test
+        run: vp test --coverage
 
       - name: Build (production)
         working-directory: ./frontend
