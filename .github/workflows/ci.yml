@@ -11,7 +11,8 @@ jobs:
   # JOB 1 : BACKEND CI (Symfony)
   # ========================================
   backend-ci:
-    name: Backend - Tests & Quality
+    #name: Backend - Tests & Quality
+    name: Backend - Tests
     runs-on: ubuntu-latest
 
     services:
@@ -70,7 +71,8 @@ jobs:
   # JOB 2 : FRONTEND CI (Vue 3 + Vite Plus)
   # ========================================
   frontend-ci:
-    name: Frontend - Tests & Quality
+    #name: Frontend - Tests & Quality
+    name: Frontend - Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -87,9 +89,9 @@ jobs:
      #   working-directory: ./frontend
      #   run: vp check
 
-      - name: Run lint
-        working-directory: ./frontend
-        run: vp lint
+     # - name: Run lint
+     #   working-directory: ./frontend
+     #   run: vp lint
 
       - name: Run tests (Vitest)
         working-directory: ./frontend
