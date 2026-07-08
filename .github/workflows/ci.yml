@@ -84,6 +84,7 @@ jobs:
         with:
           cache: true
           working-directory: ./frontend
+          run-install: true
 
       - name: Run checks (format + lint + type-check)
         working-directory: ./frontend
