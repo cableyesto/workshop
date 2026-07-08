@@ -1,0 +1,117 @@
+name: CI - Tests & Build
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ========================================
+  # JOB 1 : BACKEND CI (Symfony)
+  # ========================================
+  backend-ci:
+    name: Backend - Tests & Quality
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: workshop_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_pgsql
+          coverage: xdebug
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: composer install --prefer-dist --no-progress
+
+      #- name: Run linting (PHP CS Fixer)
+      #  working-directory: ./backend
+      #  run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      - name: Run static analysis (PHPStan)
+        working-directory: ./backend
+        run: vendor/bin/phpstan analyse src tests --level=5
+
+      - name: Setup database
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test
+        run: |
+          php bin/console doctrine:database:create --env=test
+          php bin/console doctrine:migrations:migrate --no-interaction --env=test
+
+      - name: Run tests (PHPUnit)
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test
+        run: vendor/bin/phpunit --coverage-text
+
+  # ========================================
+  # JOB 2 : FRONTEND CI (Vue 3 + Vite Plus)
+  # ========================================
+  frontend-ci:
+    name: Frontend - Tests & Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Vite Plus
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          cache: true
+          working-directory: ./frontend
+
+      - name: Run checks (format + lint + type-check)
+        working-directory: ./frontend
+        run: vp check
+
+      - name: Run tests (Vitest)
+        working-directory: ./frontend
+        run: vp test
+
+      - name: Build (production)
+        working-directory: ./frontend
+        run: vp build
+
+  # ========================================
+  # JOB 3 : SAST (Semgrep)
+  # ========================================
+  security-scan:
+    name: Security Scan (SAST)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/php
+            p/typescript

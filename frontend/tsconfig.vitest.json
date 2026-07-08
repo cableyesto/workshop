@@ -3,7 +3,8 @@
 
   // Override to include only test files and clear exclusions.
   // Application code imported in tests is automatically included via module resolution.
-  "include": ["src/**/__tests__/*", "env.d.ts", "src/shims-vue.d.ts"],
+  // "include": ["src/**/__tests__/*", "env.d.ts", "src/shims-vue.d.ts"],
+  "include": ["src/**/__tests__/**/*", "env.d.ts", "src/shims-vue.d.ts", "src/**/*.vue"],
   "exclude": [],
 
   "compilerOptions": {
@@ -14,7 +15,7 @@
     "types": ["node", "jsdom", "vitest/globals"],
 
     // Path mapping for cleaner imports in tests
-    "baseUrl": ".",
+    // "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

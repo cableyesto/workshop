@@ -18,12 +18,12 @@ const router = createRouter({
       component: () => import('@/views/Home.vue'),
       meta: { requiresAuth: false },
     },
-    {
-      path: '/owner/login',
-      name: 'owner-login',
-      component: () => import('@/views/OwnerLogin.vue'),
-      meta: { requiresAuth: false },
-    },
+    // {
+    //   path: '/owner/login',
+    //   name: 'owner-login',
+    //   component: () => import('@/views/OwnerLogin.vue'),
+    //   meta: { requiresAuth: false },
+    // },
     {
       path: '/receptionist/login',
       name: 'receptionist-login',

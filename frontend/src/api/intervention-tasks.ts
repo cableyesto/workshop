@@ -77,16 +77,12 @@ export function useCreateInterventionTaskMutation(
 
   return useMutation({
     key: ['create-intervention-task'],
-    mutation: ({
-      interventionId,
-      data,
-    }: {
-      interventionId: number
-      data: TaskPayload
-    }) => createInterventionTaskAPI(interventionId, data),
+    mutation: ({ interventionId, data }: { interventionId: number; data: TaskPayload }) =>
+      createInterventionTaskAPI(interventionId, data),
     onSuccess: (task) => {
       // Invalidate tasks cache to refresh the list
-      queryCache.invalidateQueries({ key: ['interventions'] })
+      // queryCache.invalidateQueries({ key: ['interventions'] })
+      void queryCache.invalidateQueries({ key: ['interventions'] })
       onSuccessCallback(task)
     },
     onError: (error) => {
@@ -114,7 +110,8 @@ export function useUpdateInterventionTaskMutation(
     }) => updateInterventionTaskAPI(interventionId, serviceTaskId, data),
     onSuccess: (task) => {
       // Invalidate tasks cache to refresh the list
-      queryCache.invalidateQueries({ key: ['interventions'] })
+      // queryCache.invalidateQueries({ key: ['interventions'] })
+      void queryCache.invalidateQueries({ key: ['interventions'] })
       onSuccessCallback(task)
     },
     onError: (error) => {

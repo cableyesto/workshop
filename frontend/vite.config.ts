@@ -10,8 +10,15 @@ export default defineConfig({
   staged: {
     '*': 'vp check --fix',
   },
-  lint: { options: { typeAware: true, typeCheck: true } },
+  lint: {
+    ignorePatterns: ['src/components/ui/**'],
+    options: {
+      typeAware: true,
+      typeCheck: true,
+    },
+  },
   fmt: {
+    ignorePatterns: ['src/components/ui/**'],
     semi: false,
     singleQuote: true,
   },

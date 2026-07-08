@@ -45,9 +45,9 @@ function handleToggleCalledBack(clientId: number, currentValue: boolean) {
 }
 
 function handleRemoveFromStorage(carId: number) {
-  if (confirm('Retirer cette voiture du dépôt ?')) {
-    removeCarFromStorage(carId)
-  }
+  // if (confirm('Retirer cette voiture du dépôt ?')) {
+  //   removeCarFromStorage(carId)
+  // }
   removeCarFromStorage(carId)
 }
 </script>

@@ -54,7 +54,9 @@ async function handleLogin(credentials: { email: string; password: string; siret
       </p>
 
       <!-- Loading indicator -->
-      <p v-if="isLoading" class="text-center text-sm text-gray-600 2xl:text-lg">Connexion en cours...</p>
+      <p v-if="isLoading" class="text-center text-sm text-gray-600 2xl:text-lg">
+        Connexion en cours...
+      </p>
     </div>
   </div>
 </template>
