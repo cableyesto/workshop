@@ -55,7 +55,7 @@ jobs:
       - name: Setup database
         working-directory: ./backend
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test?serverVersion=17
         run: |
           php bin/console doctrine:database:create --env=test
           php bin/console doctrine:migrations:migrate --no-interaction --env=test
@@ -63,7 +63,7 @@ jobs:
       - name: Run tests (PHPUnit)
         working-directory: ./backend
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test?serverVersion=17
         run: vendor/bin/phpunit --coverage-text
 
   # ========================================
