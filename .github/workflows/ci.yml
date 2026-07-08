@@ -102,16 +102,18 @@ jobs:
     name: Security Scan (SAST)
     runs-on: ubuntu-latest
 
+    container:
+      image: semgrep/semgrep
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Semgrep
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: >-
-            p/security-audit
-            p/secrets
-            p/owasp-top-ten
-            p/php
-            p/typescript
+      - name: Run Semgrep scan
+        run: |
+          semgrep scan \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --config=p/php \
+            --config=p/typescript
