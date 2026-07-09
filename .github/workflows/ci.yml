@@ -53,10 +53,17 @@ jobs:
       #  working-directory: ./backend
       #  run: vendor/bin/phpstan analyse src tests --level=5
 
+      - name: Generate JWT keys
+        working-directory: ./backend
+        env:
+          JWT_PASSPHRASE: test_passphrase_for_ci
+        run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
       - name: Setup database
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test?serverVersion=17
+          JWT_PASSPHRASE: test_passphrase_for_ci
         run: |
           php bin/console doctrine:database:create --env=test
           php bin/console doctrine:migrations:migrate --no-interaction --env=test
@@ -65,6 +72,7 @@ jobs:
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workshop_test?serverVersion=17
+          JWT_PASSPHRASE: test_passphrase_for_ci
         run: vendor/bin/phpunit --coverage-text
 
   # ========================================
