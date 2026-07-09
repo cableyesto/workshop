@@ -20,6 +20,11 @@ class CarTest extends TestCase
         $this->car = new Car();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->car->getId());
+    }
+
     public function testSetAndGetModel(): void
     {
         $model = 'Clio';

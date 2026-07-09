@@ -16,6 +16,11 @@ class ReceptionistTest extends TestCase
         $this->receptionist = new Receptionist();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->receptionist->getId());
+    }
+
     /**
      * Test that setPassword() hashes the password internally
      */
@@ -219,5 +224,18 @@ class ReceptionistTest extends TestCase
 
         $this->assertNotEquals($longPassword, $storedPassword);
         $this->assertTrue(password_verify($longPassword, $storedPassword));
+    }
+
+    /**
+     * Test eraseCredentials does not throw (deprecated method, no-op)
+     */
+    public function testEraseCredentialsDoesNotThrow(): void
+    {
+        // eraseCredentials is deprecated and should be a no-op
+        // Just verify it doesn't throw an exception
+        $this->receptionist->eraseCredentials();
+
+        // If we get here, the method executed without throwing
+        $this->assertTrue(true);
     }
 }

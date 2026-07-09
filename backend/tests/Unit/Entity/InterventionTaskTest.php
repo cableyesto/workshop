@@ -18,6 +18,9 @@ class InterventionTaskTest extends TestCase
         $this->interventionTask = new InterventionTask();
     }
 
+    // Note: InterventionTask uses composite primary key (intervention + serviceTask)
+    // It has no auto-increment $id property, so getId() test is not applicable
+
     public function testSetAndGetIntervention(): void
     {
         $intervention = $this->createStub(Intervention::class);

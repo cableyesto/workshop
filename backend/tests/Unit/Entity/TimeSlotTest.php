@@ -18,6 +18,11 @@ class TimeSlotTest extends TestCase
         $this->timeSlot = new TimeSlot();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->timeSlot->getId());
+    }
+
     public function testSetAndGetDayOfWeek(): void
     {
         $day = DayOfWeek::Lundi;

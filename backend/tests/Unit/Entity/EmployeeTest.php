@@ -19,6 +19,11 @@ class EmployeeTest extends TestCase
         };
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->employee->getId());
+    }
+
     public function testSetAndGetFirstName(): void
     {
         $firstName = 'John';

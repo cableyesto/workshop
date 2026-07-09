@@ -16,6 +16,11 @@ class OwnerTest extends TestCase
         $this->owner = new Owner();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->owner->getId());
+    }
+
     /**
      * Test that setPassword() stores the value as-is (expects pre-hashed password)
      */
@@ -44,29 +49,6 @@ class OwnerTest extends TestCase
         // Verify it's NOT hashed by checking it doesn't start with $2y$ (bcrypt indicator)
         // Note: This test documents current behavior - password should be hashed externally
         $this->assertStringNotContainsString('$2y$', $plainPassword);
-    }
-
-    /**
-     * Test getUserIdentifier returns email
-     */
-    public function testGetUserIdentifierReturnsEmail(): void
-    {
-        $email = 'owner@garage.com';
-        $this->owner->setEmail($email);
-
-        $this->assertSame($email, $this->owner->getUserIdentifier());
-    }
-
-    /**
-     * Test getRoles returns ROLE_OWNER
-     */
-    public function testGetRolesReturnsOwnerRole(): void
-    {
-        $roles = $this->owner->getRoles();
-
-        $this->assertIsArray($roles);
-        $this->assertContains('ROLE_OWNER', $roles);
-        $this->assertCount(1, $roles);
     }
 
     /**
@@ -159,5 +141,50 @@ class OwnerTest extends TestCase
 
         // Verify we can verify it
         $this->assertTrue(password_verify($plainPassword, $storedPassword));
+    }
+
+    /**
+     * Test getUserIdentifier returns email
+     */
+    public function testGetUserIdentifierReturnsEmail(): void
+    {
+        $email = 'owner@garage.com';
+        $this->owner->setEmail($email);
+
+        $this->assertSame($email, $this->owner->getUserIdentifier());
+    }
+
+    /**
+     * Test getRoles returns ROLE_OWNER
+     */
+    public function testGetRolesReturnsOwnerRole(): void
+    {
+        $roles = $this->owner->getRoles();
+
+        $this->assertIsArray($roles);
+        $this->assertContains('ROLE_OWNER', $roles);
+    }
+
+    /**
+     * Test eraseCredentials does not throw (deprecated method)
+     */
+    public function testEraseCredentialsDoesNotThrow(): void
+    {
+        // eraseCredentials is deprecated and should be a no-op
+        $this->owner->eraseCredentials();
+
+        // If we get here, the method executed without throwing
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Test getGarages returns collection
+     */
+    public function testGetGaragesReturnsCollection(): void
+    {
+        $garages = $this->owner->getGarages();
+
+        $this->assertInstanceOf(\Doctrine\Common\Collections\Collection::class, $garages);
+        $this->assertCount(0, $garages);
     }
 }

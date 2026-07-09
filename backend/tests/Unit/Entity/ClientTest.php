@@ -18,6 +18,11 @@ class ClientTest extends TestCase
         $this->client = new Client();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->client->getId());
+    }
+
     public function testSetAndGetFirstName(): void
     {
         $firstName = 'Jean';

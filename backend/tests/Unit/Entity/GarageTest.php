@@ -19,6 +19,11 @@ class GarageTest extends TestCase
         $this->garage = new Garage();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->garage->getId());
+    }
+
     public function testSetAndGetSiretNumber(): void
     {
         $siret = '12345678901234';
@@ -171,5 +176,85 @@ class GarageTest extends TestCase
             ->setZipCode('75001');
 
         $this->assertSame($this->garage, $result);
+    }
+
+    /**
+     * Test removing an owner
+     */
+    public function testRemoveOwner(): void
+    {
+        $owner = $this->createMock(Owner::class);
+        $owner->expects($this->once())->method('addGarage')->with($this->garage);
+        $owner->expects($this->once())->method('removeGarage')->with($this->garage);
+
+        $this->garage->addOwner($owner);
+        $this->assertCount(1, $this->garage->getOwners());
+
+        $this->garage->removeOwner($owner);
+        $this->assertCount(0, $this->garage->getOwners());
+    }
+
+    /**
+     * Test removing a time slot
+     */
+    public function testRemoveTimeSlot(): void
+    {
+        $timeSlot = $this->createMock(TimeSlot::class);
+        // setGarage is called twice: once with $this->garage, once with null
+        $timeSlot->expects($this->exactly(2))->method('setGarage');
+        $timeSlot->expects($this->once())->method('getGarage')->willReturn($this->garage);
+
+        $this->garage->addTimeSlot($timeSlot);
+        $this->assertCount(1, $this->garage->getTimeSlots());
+
+        $this->garage->removeTimeSlot($timeSlot);
+        $this->assertCount(0, $this->garage->getTimeSlots());
+    }
+
+    /**
+     * Test removing an employee
+     */
+    public function testRemoveEmployee(): void
+    {
+        $employee = $this->createStub(Employee::class);
+
+        $this->garage->addEmployee($employee);
+        $this->assertCount(1, $this->garage->getEmployees());
+
+        $this->garage->removeEmployee($employee);
+        $this->assertCount(0, $this->garage->getEmployees());
+    }
+
+    /**
+     * Test adding a client
+     */
+    public function testAddClient(): void
+    {
+        $client = $this->createMock(\App\Entity\Client::class);
+        $client->expects($this->once())
+            ->method('setGarage')
+            ->with($this->garage);
+
+        $this->garage->addClient($client);
+
+        $this->assertCount(1, $this->garage->getClients());
+        $this->assertTrue($this->garage->getClients()->contains($client));
+    }
+
+    /**
+     * Test removing a client
+     */
+    public function testRemoveClient(): void
+    {
+        $client = $this->createMock(\App\Entity\Client::class);
+        // setGarage is called twice: once with $this->garage, once with null
+        $client->expects($this->exactly(2))->method('setGarage');
+        $client->expects($this->once())->method('getGarage')->willReturn($this->garage);
+
+        $this->garage->addClient($client);
+        $this->assertCount(1, $this->garage->getClients());
+
+        $this->garage->removeClient($client);
+        $this->assertCount(0, $this->garage->getClients());
     }
 }

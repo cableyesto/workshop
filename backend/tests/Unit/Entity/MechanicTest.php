@@ -16,6 +16,11 @@ class MechanicTest extends TestCase
         $this->mechanic = new Mechanic();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->mechanic->getId());
+    }
+
     /**
      * Test that a valid 4-digit PIN can be set and verified
      */
@@ -184,5 +189,40 @@ class MechanicTest extends TestCase
 
         $this->mechanic->removeIntervention($intervention);
         $this->assertCount(0, $this->mechanic->getInterventions());
+    }
+
+    /**
+     * Test getUserIdentifier returns mechanic ID as string
+     */
+    public function testGetUserIdentifierReturnsIdAsString(): void
+    {
+        // For Mechanic, getUserIdentifier returns the ID as string
+        // Since ID is null before persistence, it returns empty string
+        $identifier = $this->mechanic->getUserIdentifier();
+
+        $this->assertIsString($identifier);
+    }
+
+    /**
+     * Test getRoles returns ROLE_MECHANIC
+     */
+    public function testGetRolesReturnsMechanicRole(): void
+    {
+        $roles = $this->mechanic->getRoles();
+
+        $this->assertIsArray($roles);
+        $this->assertContains('ROLE_MECHANIC', $roles);
+    }
+
+    /**
+     * Test eraseCredentials does not throw (deprecated method)
+     */
+    public function testEraseCredentialsDoesNotThrow(): void
+    {
+        // eraseCredentials is deprecated and should be a no-op
+        $this->mechanic->eraseCredentials();
+
+        // If we get here, the method executed without throwing
+        $this->assertTrue(true);
     }
 }

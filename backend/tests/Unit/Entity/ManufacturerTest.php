@@ -16,6 +16,11 @@ class ManufacturerTest extends TestCase
         $this->manufacturer = new Manufacturer();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->manufacturer->getId());
+    }
+
     public function testSetAndGetName(): void
     {
         $name = 'Renault';

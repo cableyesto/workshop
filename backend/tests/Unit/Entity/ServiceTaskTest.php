@@ -16,6 +16,11 @@ class ServiceTaskTest extends TestCase
         $this->serviceTask = new ServiceTask();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->serviceTask->getId());
+    }
+
     public function testSetAndGetName(): void
     {
         $name = 'Vidange moteur';

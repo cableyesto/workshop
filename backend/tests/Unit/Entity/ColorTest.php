@@ -16,6 +16,11 @@ class ColorTest extends TestCase
         $this->color = new Color();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->color->getId());
+    }
+
     public function testSetAndGetName(): void
     {
         $name = 'Bleu';

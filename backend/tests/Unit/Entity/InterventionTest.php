@@ -27,6 +27,11 @@ class InterventionTest extends TestCase
         $this->intervention = new Intervention();
     }
 
+    public function testGetIdReturnsNullBeforePersistence(): void
+    {
+        $this->assertNull($this->intervention->getId());
+    }
+
     public function testSetAndGetDate(): void
     {
         $date = new \DateTimeImmutable('2024-01-15');
@@ -236,5 +241,38 @@ class InterventionTest extends TestCase
             ->setType(InterventionType::Repair);
 
         $this->assertSame($this->intervention, $result);
+    }
+
+    /**
+     * Test removing an intervention task
+     */
+    public function testRemoveInterventionTask(): void
+    {
+        $task = $this->createMock(InterventionTask::class);
+        // setIntervention is called twice: once with $this->intervention, once with null
+        $task->expects($this->exactly(2))->method('setIntervention');
+        $task->expects($this->once())->method('getIntervention')->willReturn($this->intervention);
+
+        $this->intervention->addInterventionTask($task);
+        $this->assertCount(1, $this->intervention->getInterventionTasks());
+
+        $this->intervention->removeInterventionTask($task);
+        $this->assertCount(0, $this->intervention->getInterventionTasks());
+    }
+
+    /**
+     * Test removing a mechanic
+     */
+    public function testRemoveMechanic(): void
+    {
+        $mechanic = $this->createMock(Mechanic::class);
+        $mechanic->expects($this->once())->method('addIntervention')->with($this->intervention);
+        $mechanic->expects($this->once())->method('removeIntervention')->with($this->intervention);
+
+        $this->intervention->addMechanic($mechanic);
+        $this->assertCount(1, $this->intervention->getMechanics());
+
+        $this->intervention->removeMechanic($mechanic);
+        $this->assertCount(0, $this->intervention->getMechanics());
     }
 }
