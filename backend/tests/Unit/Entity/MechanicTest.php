@@ -136,4 +136,53 @@ class MechanicTest extends TestCase
         $this->assertTrue($mechanic1->verifyPin('1234'));
         $this->assertTrue($mechanic2->verifyPin('1234'));
     }
+
+    /**
+     * Test that interventions collection is empty by default
+     */
+    public function testGetInterventionsReturnsEmptyCollectionByDefault(): void
+    {
+        $interventions = $this->mechanic->getInterventions();
+        $this->assertCount(0, $interventions);
+    }
+
+    /**
+     * Test adding an intervention
+     */
+    public function testAddIntervention(): void
+    {
+        $intervention = $this->createStub(\App\Entity\Intervention::class);
+
+        $this->mechanic->addIntervention($intervention);
+
+        $this->assertCount(1, $this->mechanic->getInterventions());
+        $this->assertTrue($this->mechanic->getInterventions()->contains($intervention));
+    }
+
+    /**
+     * Test that adding same intervention twice does not duplicate
+     */
+    public function testAddInterventionDoesNotDuplicate(): void
+    {
+        $intervention = $this->createStub(\App\Entity\Intervention::class);
+
+        $this->mechanic->addIntervention($intervention);
+        $this->mechanic->addIntervention($intervention);
+
+        $this->assertCount(1, $this->mechanic->getInterventions());
+    }
+
+    /**
+     * Test removing an intervention
+     */
+    public function testRemoveIntervention(): void
+    {
+        $intervention = $this->createStub(\App\Entity\Intervention::class);
+
+        $this->mechanic->addIntervention($intervention);
+        $this->assertCount(1, $this->mechanic->getInterventions());
+
+        $this->mechanic->removeIntervention($intervention);
+        $this->assertCount(0, $this->mechanic->getInterventions());
+    }
 }
