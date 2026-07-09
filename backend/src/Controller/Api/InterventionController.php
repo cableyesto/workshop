@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Http\Attribute\Security;
 
 final class InterventionController extends AbstractAuthenticatedController
 {
@@ -39,6 +40,7 @@ final class InterventionController extends AbstractAuthenticatedController
     }
 
     #[Route('/api/interventions', name: 'api_interventions_create', methods: ['POST'])]
+    #[Security("is_granted('ROLE_OWNER') or is_granted('ROLE_RECEPTIONIST')")]
     public function create(Request $request): JsonResponse
     {
         $garageId = $this->getAuthenticatedGarageId();
