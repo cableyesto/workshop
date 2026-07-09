@@ -44,8 +44,14 @@ abstract class ApiTestCase extends WebTestCase
 
         // Create fixture loader
         $loader = new Loader();
+
+        // Add security fixtures (users, garages)
         $securityFixtures = new SecurityFixtures();
         $loader->addFixture($securityFixtures);
+
+        // Add reference data fixtures (colors, manufacturers, service tasks)
+        $referenceDataFixtures = new \App\Tests\Fixtures\ReferenceDataFixtures();
+        $loader->addFixture($referenceDataFixtures);
 
         // Purge and load fixtures
         $purger = new ORMPurger($entityManager);
