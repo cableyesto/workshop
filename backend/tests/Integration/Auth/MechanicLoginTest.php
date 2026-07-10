@@ -218,6 +218,39 @@ class MechanicLoginTest extends ApiTestCase
     }
 
     /**
+     * Test that JWT token contains garage_id
+     */
+    public function testTokenContainsGarageId(): void
+    {
+        $token = $this->getMechanicToken();
+
+        // Decode JWT payload
+        $parts = explode('.', $token);
+        $this->assertCount(3, $parts, 'JWT should have 3 parts');
+
+        $payload = json_decode(base64_decode($parts[1]), true);
+
+        $this->assertArrayHasKey('garage_id', $payload);
+        $this->assertIsInt($payload['garage_id']);
+    }
+
+    /**
+     * Test that JWT token contains garage_siret
+     */
+    public function testTokenContainsGarageSiret(): void
+    {
+        $token = $this->getMechanicToken();
+
+        // Decode JWT payload
+        $parts = explode('.', $token);
+        $payload = json_decode(base64_decode($parts[1]), true);
+
+        $this->assertArrayHasKey('garage_siret', $payload);
+        $this->assertIsString($payload['garage_siret']);
+        $this->assertEquals(SecurityFixtures::GARAGE_SIRET, $payload['garage_siret']);
+    }
+
+    /**
      * Test login with empty request body
      */
     public function testLoginWithEmptyBodyReturns400(): void

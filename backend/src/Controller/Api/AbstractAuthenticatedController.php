@@ -22,6 +22,11 @@ abstract class AbstractAuthenticatedController extends AbstractController
     /**
      * Extract and validate garage ID from JWT token
      *
+     * Supports all user types:
+     * - Owner: uses first garage from garage_ids array
+     * - Receptionist: uses garage_id
+     * - Mechanic: uses garage_id
+     *
      * @param int|null $resourceId Optional resource ID for logging context
      * @return int|JsonResponse Returns garage ID on success, JsonResponse on failure
      */
@@ -43,10 +48,10 @@ abstract class AbstractAuthenticatedController extends AbstractController
             return $this->json(['error' => 'Invalid token'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        // Extract garage_id from JWT (receptionist) or garage_ids (owner)
+        // Extract garage_id from JWT
         $garageId = null;
 
-        // Receptionist: single garage_id
+        // Receptionist & Mechanic: single garage_id
         if (isset($payload['garage_id'])) {
             $garageId = $payload['garage_id'];
         }

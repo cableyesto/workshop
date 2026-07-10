@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventSubscriber;
 
+use App\Entity\Mechanic;
 use App\Entity\Owner;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
@@ -12,8 +13,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Adds garage context to JWT payload:
- * - Receptionist: garage_id, garage_siret (single garage)
  * - Owner: garage_ids (array of all owned garage IDs)
+ * - Receptionist: garage_id, garage_siret (single garage)
+ * - Mechanic: garage_id, garage_siret (from first assigned garage)
  */
 final class JwtCreatedSubscriber implements EventSubscriberInterface
 {
@@ -42,6 +44,19 @@ final class JwtCreatedSubscriber implements EventSubscriberInterface
 
             $payload['garage_ids'] = array_values($garageIds);
             $event->setData($payload);
+            return;
+        }
+
+        // Handle Mechanic: add single garage context (first assigned garage)
+        if ($user instanceof Mechanic) {
+            $garage = $user->getGarages()->first();
+
+            if ($garage) {
+                $payload['garage_id'] = $garage->getId();
+                $payload['garage_siret'] = $garage->getSiretNumber();
+                $event->setData($payload);
+            }
+
             return;
         }
 
