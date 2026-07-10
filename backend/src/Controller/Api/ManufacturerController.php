@@ -7,10 +7,11 @@ namespace App\Controller\Api;
 use App\Repository\ManufacturerRepository;
 use Illuminate\Support\Collection;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class ManufacturerController
+final class ManufacturerController extends AbstractController
 {
     public function __construct(
         private readonly ManufacturerRepository $manufacturerRepository,
@@ -34,6 +35,6 @@ final class ManufacturerController
             ->values()
             ->toArray();
 
-        return new JsonResponse($data);
+        return $this->json($data);
     }
 }
