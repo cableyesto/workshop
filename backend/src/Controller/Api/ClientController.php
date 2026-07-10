@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Http\Attribute\Security;
 
 final class ClientController extends AbstractAuthenticatedController
 {
@@ -25,9 +24,13 @@ final class ClientController extends AbstractAuthenticatedController
     }
 
     #[Route('/api/clients/{id}', name: 'api_clients_update_called_back', methods: ['PATCH'])]
-    #[Security("is_granted('ROLE_OWNER') or is_granted('ROLE_RECEPTIONIST')")]
     public function updateCalledBack(int $id, Request $request): JsonResponse
     {
+        // Only Owner and Receptionist can manage clients
+        if ($denied = $this->denyAccessUnlessOwnerOrReceptionist()) {
+            return $denied;
+        }
+
         $garageId = $this->getAuthenticatedGarageId($id);
         if ($garageId instanceof JsonResponse) {
             return $garageId;
@@ -70,9 +73,13 @@ final class ClientController extends AbstractAuthenticatedController
     }
 
     #[Route('/api/clients/{id}', name: 'api_clients_update', methods: ['PUT'])]
-    #[Security("is_granted('ROLE_OWNER') or is_granted('ROLE_RECEPTIONIST')")]
     public function update(int $id, Request $request): JsonResponse
     {
+        // Only Owner and Receptionist can manage clients
+        if ($denied = $this->denyAccessUnlessOwnerOrReceptionist()) {
+            return $denied;
+        }
+
         $garageId = $this->getAuthenticatedGarageId($id);
         if ($garageId instanceof JsonResponse) {
             return $garageId;

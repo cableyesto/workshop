@@ -71,4 +71,24 @@ abstract class AbstractAuthenticatedController extends AbstractController
 
         return $garageId;
     }
+
+    /**
+     * Deny access unless user has Owner or Receptionist role
+     *
+     * Mechanics are not allowed to access management endpoints.
+     *
+     * @return JsonResponse|null Returns null if access granted, JsonResponse with 403 if denied
+     */
+    protected function denyAccessUnlessOwnerOrReceptionist(): ?JsonResponse
+    {
+        if (!$this->isGranted('ROLE_OWNER') && !$this->isGranted('ROLE_RECEPTIONIST')) {
+            $this->logger->warning('Access denied: user is not owner or receptionist', [
+                'roles' => $this->getUser()?->getRoles() ?? [],
+            ]);
+
+            return $this->json(['error' => 'Access denied'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        return null;
+    }
 }

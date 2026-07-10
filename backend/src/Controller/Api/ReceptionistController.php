@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Http\Attribute\Security;
 
 final class ReceptionistController extends AbstractAuthenticatedController
 {
@@ -25,9 +24,13 @@ final class ReceptionistController extends AbstractAuthenticatedController
     }
 
     #[Route('/api/receptionists', name: 'api_receptionists_index', methods: ['GET'])]
-    #[Security("is_granted('ROLE_OWNER') or is_granted('ROLE_RECEPTIONIST')")]
     public function index(): JsonResponse
     {
+        // Only Owner and Receptionist can manage receptionists
+        if ($denied = $this->denyAccessUnlessOwnerOrReceptionist()) {
+            return $denied;
+        }
+
         $garageId = $this->getAuthenticatedGarageId();
         if ($garageId instanceof JsonResponse) {
             return $garageId;
@@ -39,9 +42,13 @@ final class ReceptionistController extends AbstractAuthenticatedController
     }
 
     #[Route('/api/receptionists', name: 'api_receptionists_create', methods: ['POST'])]
-    #[Security("is_granted('ROLE_OWNER') or is_granted('ROLE_RECEPTIONIST')")]
     public function create(Request $request): JsonResponse
     {
+        // Only Owner and Receptionist can manage receptionists
+        if ($denied = $this->denyAccessUnlessOwnerOrReceptionist()) {
+            return $denied;
+        }
+
         $garageId = $this->getAuthenticatedGarageId();
         if ($garageId instanceof JsonResponse) {
             return $garageId;
@@ -94,9 +101,13 @@ final class ReceptionistController extends AbstractAuthenticatedController
     }
 
     #[Route('/api/receptionists/{id}', name: 'api_receptionists_update', methods: ['PUT'])]
-    #[Security("is_granted('ROLE_OWNER') or is_granted('ROLE_RECEPTIONIST')")]
     public function update(int $id, Request $request): JsonResponse
     {
+        // Only Owner and Receptionist can manage receptionists
+        if ($denied = $this->denyAccessUnlessOwnerOrReceptionist()) {
+            return $denied;
+        }
+
         $garageId = $this->getAuthenticatedGarageId($id);
         if ($garageId instanceof JsonResponse) {
             return $garageId;
@@ -157,9 +168,13 @@ final class ReceptionistController extends AbstractAuthenticatedController
     }
 
     #[Route('/api/receptionists/{id}', name: 'api_receptionists_delete', methods: ['DELETE'])]
-    #[Security("is_granted('ROLE_OWNER') or is_granted('ROLE_RECEPTIONIST')")]
     public function delete(int $id): JsonResponse
     {
+        // Only Owner and Receptionist can manage receptionists
+        if ($denied = $this->denyAccessUnlessOwnerOrReceptionist()) {
+            return $denied;
+        }
+
         $garageId = $this->getAuthenticatedGarageId($id);
         if ($garageId instanceof JsonResponse) {
             return $garageId;
