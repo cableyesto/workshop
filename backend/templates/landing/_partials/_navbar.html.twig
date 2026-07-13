@@ -1,0 +1,54 @@
+<nav class="sticky top-0 z-50 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-14 sm:h-15 lg:h-16">
+            <a href="{{ path('landing') }}" class="font-display text-xl sm:text-2xl font-bold text-slate-900">
+                Wörkshop
+            </a>
+
+            <div class="hidden sm:flex items-center gap-6 lg:gap-8">
+                <a href="#fonctionnalites" class="text-sm lg:text-base text-slate-600 hover:text-slate-900 transition-colors">
+                    Fonctionnalités
+                </a>
+                <a href="#comment-ca-marche" class="text-sm lg:text-base text-slate-600 hover:text-slate-900 transition-colors">
+                    Comment ça marche
+                </a>
+                <a href="#contact" class="hidden lg:block text-base text-slate-600 hover:text-slate-900 transition-colors">
+                    Contact
+                </a>
+                <a href="/register" class="inline-flex items-center justify-center px-4 py-2 sm:px-5 sm:py-2.5 lg:px-6 lg:py-3 bg-slate-900 text-white text-sm lg:text-base font-bold rounded-lg hover:bg-slate-800 transition-colors">
+                    Créer mon compte
+                </a>
+            </div>
+
+            <button
+                type="button"
+                class="sm:hidden p-2 text-slate-600 hover:text-slate-900"
+                onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
+                aria-label="Menu"
+            >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="mobile-menu" class="hidden sm:hidden bg-white border-t border-slate-200">
+        <div class="px-4 py-2 space-y-1">
+            <a href="#fonctionnalites" class="block px-4 py-4 text-slate-600 hover:text-slate-900 border-b border-slate-200">
+                Fonctionnalités
+            </a>
+            <a href="#comment-ca-marche" class="block px-4 py-4 text-slate-600 hover:text-slate-900 border-b border-slate-200">
+                Comment ça marche
+            </a>
+            <a href="#contact" class="block px-4 py-4 text-slate-600 hover:text-slate-900 border-b border-slate-200">
+                Contact
+            </a>
+            <div class="py-4">
+                <a href="/register" class="block w-full text-center px-4 py-3 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 transition-colors">
+                    Créer mon compte
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>

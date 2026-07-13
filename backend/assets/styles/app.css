@@ -1,0 +1,49 @@
+/* 1. Déclaration des polices locales */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/poppins-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/inter-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/inter-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/inter-700.woff2') format('woff2');
+}
+
+/* 2. Import de Tailwind v4 */
+@import "tailwindcss";
+
+/* 3. Configuration des sources de scan */
+@source "../../templates/**/*.twig";
+@source not "../../public";
+@source not "../../vendor";
+
+/* 4. Configuration du Thème */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Poppins', ui-sans-serif, sans-serif;
+
+  --color-page-bg: #f8fafc;
+  --color-footer-bg: #1e293b;
+}

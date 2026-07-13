@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wörkshop — Gérez votre garage en toute simplicité{% endblock %}
+
+{% block meta_description %}Digitalisez la gestion de votre garage automobile. Suivi des interventions en temps réel, productivité améliorée, zéro papier. Créez votre compte gratuitement.{% endblock %}
+
+{% block body %}
+    {% include 'landing/_partials/_navbar.html.twig' %}
+
+    <main>
+        {% include 'landing/_partials/_hero.html.twig' %}
+        {% include 'landing/_partials/_section1.html.twig' %}
+        {% include 'landing/_partials/_section2.html.twig' %}
+        {% include 'landing/_partials/_section3.html.twig' %}
+        {% include 'landing/_partials/_cta_final.html.twig' %}
+    </main>
+
+    {% include 'landing/_partials/_footer.html.twig' %}
+{% endblock %}
