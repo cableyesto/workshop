@@ -33,4 +33,4 @@ Disallow: /
 User-agent: Applebot-Extended
 Disallow: /
 
-Sitemap: https://workshop.fr/sitemap.xml
+Sitemap: https://weurkshop.fr/sitemap.xml

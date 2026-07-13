@@ -86,14 +86,3 @@ when@test:
                 cost: 4 # Lowest possible value for bcrypt
                 time_cost: 3 # Lowest possible value for argon
                 memory_cost: 10 # Lowest possible value for argon
-
-when@prod:
-    security:
-        access_control:
-            # Public endpoints
-            - { path: ^/api/login$, roles: PUBLIC_ACCESS }
-            - { path: ^/api/garage/[^/]+/mechanic/login$, roles: PUBLIC_ACCESS }
-            - { path: ^/api/health, roles: PUBLIC_ACCESS, ips: [127.0.0.1, '::1'] }  # Production: localhost only
-
-            # Protected API endpoints (require JWT authentication)
-            - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
